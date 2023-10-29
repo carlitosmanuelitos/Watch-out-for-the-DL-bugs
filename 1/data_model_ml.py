@@ -202,6 +202,7 @@ class BaseModel_ML:
         show(row(p1, p2))
 
 
+
 class Enhanced_Linear_Regression(BaseModel_ML):
     """
     Initialize the Enhanced_Linear_Regression model.
@@ -240,7 +241,6 @@ class Enhanced_Linear_Regression(BaseModel_ML):
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
-
 class Enhanced_XGBoost(BaseModel_ML):
     def __init__(self, data_preprocessor, config, plot=True):
         super().__init__(data_preprocessor, config, plot)
@@ -267,10 +267,6 @@ class Enhanced_XGBoost(BaseModel_ML):
             self.logger.info("Predictions made successfully for both training and test data")
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")        
-
-
-
-        
 
 class Enhanced_LightGBM(BaseModel_ML):
     """
@@ -301,11 +297,6 @@ class Enhanced_LightGBM(BaseModel_ML):
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
-
-
-
-
-
 class Enhanced_SVM(BaseModel_ML):
     """
     Initialize the Enhanced SVM model.
@@ -335,8 +326,6 @@ class Enhanced_SVM(BaseModel_ML):
             self.logger.info("Predictions made successfully.")
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
-
-
 
 class Enhanced_KNN(BaseModel_ML):
     """
@@ -371,8 +360,6 @@ class Enhanced_KNN(BaseModel_ML):
             self.logger.info("Predictions made successfully.")
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
-
-
 
 class Enhanced_RandomForest(BaseModel_ML):
     """
@@ -418,7 +405,6 @@ class Enhanced_RandomForest(BaseModel_ML):
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
-
 class Enhanced_SVR(BaseModel_ML):
     """
     Initialize the Enhanced SVR model.
@@ -448,8 +434,6 @@ class Enhanced_SVR(BaseModel_ML):
             self.logger.info("Predictions made successfully.")
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
-
-
 
 class Enhanced_ExtraTrees(BaseModel_ML):
     """
@@ -481,6 +465,9 @@ class Enhanced_ExtraTrees(BaseModel_ML):
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
+
+
+
 from data_fetcher import btc_data
 from data_preprocessor import UnifiedDataPreprocessor
 df = btc_data.copy()
@@ -489,191 +476,6 @@ data_preprocessor = UnifiedDataPreprocessor(df, target_column='Close')
 data_preprocessor.split_and_plot_data(test_size=0.2, plot=False)
 data_preprocessor.normalize_data(scaler_type='MinMax', plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax', plot=False)
-
-
-
-"""
-config = {
-    'regularization': 'ridge',  # 'ridge', 'lasso', or None for plain Linear Regression
-    'alpha': 1.0  # regularization strength
-}
-
-model = Enhanced_Linear_Regression(data_preprocessor, config, plot=True)
-model.train_model()
-model.make_predictions()
-model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = model.evaluate_model()
-display(evaluation_results)
-model.plot_predictions()  # This will obey the plotting=True/False flag set during initialization
-model.save_model_to_folder(version="final")
-
-
-xgb_config = {
-    'objective': 'reg:squarederror',
-    'learning_rate': 0.1,
-    'n_estimators': 100,
-    'max_depth': 5
-}
-
-xgb_model = Enhanced_XGBoost(data_preprocessor, xgb_config, plot=True)
-xgb_model.train_model()
-xgb_model.make_predictions()
-xgb_model.inverse_scale_predictions()  # Make sure this method reshapes the arrays
-train_comparison_df, test_comparison_df = xgb_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = xgb_model.evaluate_model()
-display(evaluation_results)
-xgb_model.plot_predictions()
-xgb_model.save_model_to_folder(version="final")
-
-lgbm_config = {
-    'objective': 'regression',
-    'learning_rate': 0.1,
-    'n_estimators': 100,
-    'max_depth': 5
-}
-
-lgbm_model = Enhanced_LightGBM(data_preprocessor, lgbm_config, plot=True)
-lgbm_model.train_model()
-lgbm_model.make_predictions()
-lgbm_model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = lgbm_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = lgbm_model.evaluate_model()
-display(evaluation_results)
-lgbm_model.plot_predictions()
-lgbm_model.save_model_to_folder(version="final")
-
-svm_config = {
-    'kernel': 'rbf',
-    'C': 1.0,
-    'epsilon': 0.1
-}
-
-# Initialize Enhanced_SVM model
-svm_model = Enhanced_SVM(data_preprocessor, svm_config, plot=True)
-svm_model.train_model()
-svm_model.make_predictions()
-svm_model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = svm_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = svm_model.evaluate_model()
-display(evaluation_results)
-svm_model.plot_predictions()
-svm_model.save_model_to_folder(version="final")
-
-
-svr_config = {
-    'kernel': 'rbf',
-    'C': 1.0,
-    'epsilon': 0.1
-}
-svr_model = Enhanced_SVR(data_preprocessor, svr_config, plot=True)
-svr_model.train_model()
-svr_model.make_predictions()
-svr_model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = svr_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = svr_model.evaluate_model()
-display(evaluation_results)
-svr_model.plot_predictions()
-svr_model.save_model_to_folder(version="final")
-
-
-knn_config = {
-    'n_neighbors': 5,
-    'weights': 'uniform',
-    'algorithm': 'auto'
-}
-
-# Initialize Enhanced_KNN model
-knn_model = Enhanced_KNN(data_preprocessor, knn_config, plot=True)
-knn_model.train_model()
-knn_model.make_predictions()
-knn_model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = knn_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = knn_model.evaluate_model()
-display(evaluation_results)
-knn_model.plot_predictions()
-knn_model.save_model_to_folder(version="final")
-
-rf_config = {
-    'n_estimators': 100,
-    'criterion': 'poisson',
-    'max_depth': None
-}
-
-# Initialize Enhanced_RandomForest model
-rf_model = Enhanced_RandomForest(data_preprocessor, rf_config, plot=True)
-rf_model.train_model()
-feature_importance_scores = rf_model.feature_importance()
-rf_model.make_predictions()
-rf_model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = rf_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = rf_model.evaluate_model()
-display(evaluation_results)
-rf_model.plot_predictions()
-rf_model.save_model_to_folder(version="final")
-
-
-extra_trees_config = {
-    'n_estimators': 100,
-    'criterion': 'squared_error',
-    'max_depth': None
-}
-extra_trees_model = Enhanced_ExtraTrees(data_preprocessor, extra_trees_config, plot=True)
-extra_trees_model.train_model()
-extra_trees_model.make_predictions()
-extra_trees_model.inverse_scale_predictions()
-train_comparison_df, test_comparison_df = extra_trees_model.compare_predictions()
-#display(test_comparison_df)
-#display(train_comparison_df)
-evaluation_results = extra_trees_model.evaluate_model()
-display(evaluation_results)
-extra_trees_model.plot_predictions()
-extra_trees_model.save_model_to_folder(version="final")
-
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 models = {
     'Enhanced_Linear_Regression': {
@@ -750,7 +552,6 @@ models = {
         'skip': False
     }
 }
-
 
 def run_models(models, data_preprocessor, run_only=None, skip=None):
     for name, model_info in models.items():

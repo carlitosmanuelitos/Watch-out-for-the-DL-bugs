@@ -707,284 +707,91 @@ class SOA_TRANSFORMER(BaseModel_DL_SOA):
 
 
 
-
-
-
-
-
-
-
-
-
-
 sequence_length = data_preprocessor.X_train_seq.shape[1]  # Number of time steps in a sequence
 num_features = data_preprocessor.X_train_seq.shape[2]     # Number of features at each time step
 
-tcn_config = {
-    'input_shape': (sequence_length, num_features),
-    'nb_filters': 64,
-    'kernel_size': 2,
-    'nb_stacks': 1,
-    'dilations': [1, 2, 4, 8, 16, 32],
-    'padding': 'causal',
-    'use_skip_connections': True,
-    'dropout_rate': 0.2,
-    'return_sequences': False,
-    'activation': 'relu',
-    'kernel_initializer': 'he_normal',
-    'use_batch_norm': False,
-    'optimizer': 'adam'
-}
 
-
-tcn_model = SOA_TCN(model_type='TCN', data_preprocessor=data_preprocessor, config=tcn_config)
-tcn_model.train_model(epochs=100, batch_size=32)
-tcn_model.make_predictions()
-evaluation_df = tcn_model.evaluate_model()
-print("TCN Model Evaluation:\n", evaluation_df)
-tcn_model.plot_history()
-tcn_model.plot_predictions()
-
-
-
-#ONLY HANDLES UNIVARIATE
-# WOULD NEED A HELPER FUNCTION
-sequence_length = 1  # This should be 10
-nbeats_config = {
-    'model_type': 'generic',
-    'lookback': sequence_length,
-    'horizon': 1,
-    'num_generic_neurons': 512,
-    'num_generic_stacks': 30,
-    'num_generic_layers': 4,
-    'num_trend_neurons': 256,
-    'num_trend_stacks': 3,
-    'num_trend_layers': 4,
-    'num_seasonal_neurons': 2048,
-    'num_seasonal_stacks': 3,
-    'num_seasonal_layers': 4,
-    'num_harmonics': 1,
-    'polynomial_term': 3,
-    'loss': 'mae',
-    'learning_rate': 0.001,
-    'batch_size': 1024
-}
-
-nbeats_config['lookback'] = sequence_length
-nbeats_model = SOA_NBEATS(model_type='N-BEATS', data_preprocessor=data_preprocessor, config=nbeats_config)
-nbeats_model.train_model(epochs=100, batch_size=32)
-nbeats_model.make_predictions()
-evaluation_df = nbeats_model.evaluate_model()
-print("N-BEATS Model Evaluation:\n", evaluation_df)
-nbeats_model.plot_history()
-nbeats_model.plot_predictions()
-
-
-
-sequence_length = data_preprocessor.X_train_seq.shape[1]  # Number of time steps in a sequence
-num_features = data_preprocessor.X_train_seq.shape[2]     # Number of features at each time step
-
-# Sample initiation
-wavenet_config = {
-    'input_shape': (sequence_length, num_features),
-    'num_blocks': 4,
-    'filters': 32,
-    'kernel_size': 2,
-    'optimizer': 'adam',
-    'loss': 'mae'
-}
-
-wavenet_model = SOA_WAVENET(model_type='WaveNet', data_preprocessor=data_preprocessor, config=wavenet_config)
-wavenet_model.train_model(epochs=100, batch_size=32)
-wavenet_model.make_predictions()
-evaluation_df = wavenet_model.evaluate_model()
-print("WaveNet Model Evaluation:\n", evaluation_df)
-wavenet_model.plot_history()
-wavenet_model.plot_predictions()
-
-
-
-sequence_length = data_preprocessor.X_train_seq.shape[1]  # Number of time steps in a sequence
-num_features = data_preprocessor.X_train_seq.shape[2]     # Number of features at each time step
-
-# Configuration for LSTNet
-lstnet_config = {
-    'input_shape': (sequence_length, num_features),
-    'cnn_filters': 64,
-    'gru_units': 64,
-    'kernel_size': 3,
-    'optimizer': 'adam',
-    'loss': 'mae'
-}
-
-# Build and train the LSTNet model
-lstnet_model = SOA_LSTNET(model_type='LSTNet', data_preprocessor=data_preprocessor, config=lstnet_config)
-lstnet_model.train_model(epochs=100, batch_size=32)
-lstnet_model.make_predictions()
-evaluation_df = lstnet_model.evaluate_model()
-print("LSTNet Model Evaluation:\n", evaluation_df)
-lstnet_model.plot_history()
-lstnet_model.plot_predictions()
-
-
-
-
-
-sequence_length = data_preprocessor.X_train_seq.shape[1]  # Number of time steps in a sequence
-num_features = data_preprocessor.X_train_seq.shape[2]    
-# Configuration for Transformer
-transformer_config = {
-    'input_shape': (sequence_length, num_features),
-    'num_layers': 2,
-    'embed_size': 64,
-    'heads': 4,
-    'dropout': 0.2,
-    'forward_expansion': 2,
-    'optimizer': 'adam',
-    'loss': 'mae'
-}
-
-# Build and train the Transformer model
-transformer_model = SOA_TRANSFORMER(model_type='Transformer', data_preprocessor=data_preprocessor, config=transformer_config)
-transformer_model.train_model(epochs=100, batch_size=32)
-transformer_model.make_predictions()
-evaluation_df = transformer_model.evaluate_model()
-print("Transformer Model Evaluation:\n", evaluation_df)
-transformer_model.plot_history()
-transformer_model.plot_predictions()
-
-
-#ONLY HANDLES UNIVARIATE
-# WOULD NEED A HELPER FUNCTION
-sequence_length = 1  # This should be 10
-nbeats_config = {
-    'model_type': 'generic',
-    'lookback': sequence_length,
-    'horizon': 1,
-    'num_generic_neurons': 512,
-    'num_generic_stacks': 30,
-    'num_generic_layers': 4,
-    'num_trend_neurons': 256,
-    'num_trend_stacks': 3,
-    'num_trend_layers': 4,
-    'num_seasonal_neurons': 2048,
-    'num_seasonal_stacks': 3,
-    'num_seasonal_layers': 4,
-    'num_harmonics': 1,
-    'polynomial_term': 3,
-    'loss': 'mae',
-    'learning_rate': 0.001,
-    'batch_size': 1024
-}
-
-nbeats_config['lookback'] = sequence_length
-nbeats_model = SOA_NBEATS(model_type='N-BEATS', data_preprocessor=data_preprocessor, config=nbeats_config)
-nbeats_model.train_model(epochs=100, batch_size=32)
-nbeats_model.make_predictions()
-evaluation_df = nbeats_model.evaluate_model()
-print("N-BEATS Model Evaluation:\n", evaluation_df)
-nbeats_model.plot_history()
-nbeats_model.plot_predictions()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-tcn_config = {
-    'input_shape': (sequence_length, num_features),
-    'nb_filters': 64,
-    'kernel_size': 2,
-    'nb_stacks': 1,
-    'dilations': [1, 2, 4, 8, 16, 32],
-    'padding': 'causal',
-    'use_skip_connections': True,
-    'dropout_rate': 0.2,
-    'return_sequences': False,
-    'activation': 'relu',
-    'kernel_initializer': 'he_normal',
-    'use_batch_norm': False,
-    'optimizer': 'adam'
-}
-
-nbeats_config = {
-    'model_type': 'generic',
-    'lookback': sequence_length,
-    'horizon': 1,
-    'num_generic_neurons': 512,
-    'num_generic_stacks': 30,
-    'num_generic_layers': 4,
-    'num_trend_neurons': 256,
-    'num_trend_stacks': 3,
-    'num_trend_layers': 4,
-    'num_seasonal_neurons': 2048,
-    'num_seasonal_stacks': 3,
-    'num_seasonal_layers': 4,
-    'num_harmonics': 1,
-    'polynomial_term': 3,
-    'loss': 'mae',
-    'learning_rate': 0.001,
-    'batch_size': 1024
-}
-
-# Sample initiation
-wavenet_config = {
-    'input_shape': (sequence_length, num_features),
-    'num_blocks': 4,
-    'filters': 32,
-    'kernel_size': 2,
-    'optimizer': 'adam',
-    'loss': 'mae'
-}
-
-# Configuration for LSTNet
-lstnet_config = {
-    'input_shape': (sequence_length, num_features),
-    'cnn_filters': 64,
-    'gru_units': 64,
-    'kernel_size': 3,
-    'optimizer': 'adam',
-    'loss': 'mae'
-}
-
-transformer_config = {
-    'input_shape': (sequence_length, num_features),
-    'num_layers': 2,
-    'embed_size': 64,
-    'heads': 4,
-    'dropout': 0.2,
-    'forward_expansion': 2,
-    'optimizer': 'adam',
-    'loss': 'mae'
-}
-
-sequence_length = 1  # This should be 10
-nbeats_config = {
-    'model_type': 'generic',
-    'lookback': sequence_length,
-    'horizon': 1,
-    'num_generic_neurons': 512,
-    'num_generic_stacks': 30,
-    'num_generic_layers': 4,
-    'num_trend_neurons': 256,
-    'num_trend_stacks': 3,
-    'num_trend_layers': 4,
-    'num_seasonal_neurons': 2048,
-    'num_seasonal_stacks': 3,
-    'num_seasonal_layers': 4,
-    'num_harmonics': 1,
-    'polynomial_term': 3,
-    'loss': 'mae',
-    'learning_rate': 0.001,
-    'batch_size': 1024
+models = {
+    'TCN': {
+        'class': SOA_TCN,
+        'config': {
+            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'nb_filters': 64,
+            'kernel_size': 2,
+            'nb_stacks': 1,
+            'dilations': [1, 2, 4, 8, 16, 32],
+            'padding': 'causal',
+            'use_skip_connections': True,
+            'dropout_rate': 0.2,
+            'return_sequences': False,
+            'activation': 'relu',
+            'kernel_initializer': 'he_normal',
+            'use_batch_norm': False,
+            'optimizer': 'adam'
+        },
+        'skip': False
+    },
+    'NBEATS': {
+        'class': SOA_NBEATS,
+        'config': {
+            'model_type': 'generic',
+            'lookback': 1,  # This should be 10
+            'horizon': 1,
+            'num_generic_neurons': 512,
+            'num_generic_stacks': 30,
+            'num_generic_layers': 4,
+            'num_trend_neurons': 256,
+            'num_trend_stacks': 3,
+            'num_trend_layers': 4,
+            'num_seasonal_neurons': 2048,
+            'num_seasonal_stacks': 3,
+            'num_seasonal_layers': 4,
+            'num_harmonics': 1,
+            'polynomial_term': 3,
+            'loss': 'mae',
+            'learning_rate': 0.001,
+            'batch_size': 1024
+        },
+        'skip': False
+    },
+    'WAVENET': {
+        'class': SOA_WAVENET,
+        'config': {
+            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'num_blocks': 4,
+            'filters': 32,
+            'kernel_size': 2,
+            'optimizer': 'adam',
+            'loss': 'mae'
+        },
+        'skip': False
+    },
+    'LSTNET': {
+        'class': SOA_LSTNET,
+        'config': {
+            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'cnn_filters': 64,
+            'gru_units': 64,
+            'kernel_size': 3,
+            'optimizer': 'adam',
+            'loss': 'mae'
+        },
+        'skip': False
+    },
+    'TRANSFORMER': {
+        'class': SOA_TRANSFORMER,
+        'config': {
+            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'num_layers': 2,
+            'embed_size': 64,
+            'heads': 4,
+            'dropout': 0.2,
+            'forward_expansion': 2,
+            'optimizer': 'adam',
+            'loss': 'mae'
+        },
+        'skip': False
+    }
 }
 
 
