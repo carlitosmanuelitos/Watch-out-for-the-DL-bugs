@@ -707,15 +707,14 @@ class SOA_TRANSFORMER(BaseModel_DL_SOA):
 
 
 
-sequence_length = data_preprocessor.X_train_seq.shape[1]  # Number of time steps in a sequence
-num_features = data_preprocessor.X_train_seq.shape[2]     # Number of features at each time step
-
 
 models = {
     'TCN': {
         'class': SOA_TCN,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'sequence_length': sequence_length,
+            'num_features': num_features,
             'nb_filters': 64,
             'kernel_size': 2,
             'nb_stacks': 1,
@@ -734,6 +733,7 @@ models = {
     'NBEATS': {
         'class': SOA_NBEATS,
         'config': {
+            'sequence_length': 1,
             'model_type': 'generic',
             'lookback': 1,  # This should be 10
             'horizon': 1,
@@ -758,6 +758,8 @@ models = {
         'class': SOA_WAVENET,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'sequence_length': data_preprocessor.X_train_seq.shape[1],
+            'num_features': data_preprocessor.X_train_seq.shape[2],
             'num_blocks': 4,
             'filters': 32,
             'kernel_size': 2,
@@ -770,6 +772,8 @@ models = {
         'class': SOA_LSTNET,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'sequence_length': data_preprocessor.X_train_seq.shape[1],
+            'num_features': data_preprocessor.X_train_seq.shape[2],
             'cnn_filters': 64,
             'gru_units': 64,
             'kernel_size': 3,
@@ -782,6 +786,8 @@ models = {
         'class': SOA_TRANSFORMER,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'sequence_length': data_preprocessor.X_train_seq.shape[1],
+            'num_features': data_preprocessor.X_train_seq.shape[2],
             'num_layers': 2,
             'embed_size': 64,
             'heads': 4,
@@ -793,7 +799,6 @@ models = {
         'skip': False
     }
 }
-
 
 
 def run_models(models, data_preprocessor, run_only=None, skip=None):
@@ -824,14 +829,13 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 
 
 
-
 # Run all models
-run_models(models, data_preprocessor)
+#run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['TCN', 'WAVENET'])
+run_models(models, data_preprocessor, run_only=['LSTNET'])
 
 # Skip specific models
-run_models(models, data_preprocessor, skip=['NBEATS'])
+#run_models(models, data_preprocessor, skip=['NBEATS'])
 
 

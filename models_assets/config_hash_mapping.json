@@ -124,5 +124,27 @@
             1
         ],
         "optimizer": "adam"
+    },
+    "72a6b5": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "num_conv_layers": 1,
+        "conv_filters": [
+            64
+        ],
+        "conv_kernel_size": [
+            3
+        ],
+        "num_lstm_layers": 1,
+        "lstm_units": [
+            50
+        ],
+        "dropout": 0.2,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
     }
 }

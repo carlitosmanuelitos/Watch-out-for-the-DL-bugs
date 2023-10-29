@@ -625,7 +625,7 @@ models = {
         'skip': False
     },
     'SimpleRNN': {
-        'class': SimpleRNN,  # Replace with your actual class
+        'class': SimpleRNNModel,  # Replace with your actual class
         'config': {
             'input_shape': (10, 30),
             'num_rnn_layers': 2,
@@ -703,14 +703,13 @@ def run_models(models, run_only=None, skip=None):
 
 
 # Run all models
-#run_models(models)
+run_models(models)
 
 # Run only specific models
-run_models(models, run_only=['LSTM','BiLSTM','GRU','BiGRU'])
+#run_models(models, run_only=['SimpleRNN'])
 
 # Skip specific models
 #run_models(models, skip=['SimpleRNN'])
-
 
 
 
