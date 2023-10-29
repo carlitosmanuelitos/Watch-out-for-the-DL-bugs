@@ -1,8 +1,7 @@
-import pandas as pd
 import numpy as np 
 from cryptocmd import CmcScraper
-import warnings, logging, os
 from math import pi
+import pandas as pd
 import matplotlib.pyplot as plt
 from bokeh.plotting import figure, show, output_notebook, save
 from bokeh.models import (HoverTool, ColumnDataSource, WheelZoomTool, Span, Range1d,
@@ -14,6 +13,7 @@ from bokeh.themes import Theme
 
 # Other settings
 from IPython.display import display, HTML
+import os, warnings, logging
 warnings.filterwarnings('ignore')
 pd.set_option('display.float_format', '{:.3f}'.format)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(message)s')

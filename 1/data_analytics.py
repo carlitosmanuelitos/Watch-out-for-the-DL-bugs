@@ -2,12 +2,10 @@ from data_fetcher import btc_data
 from sys import displayhook
 import pandas as pd
 import numpy as np
-import warnings
-import logging
-import os
 
 # Other settings
 from IPython.display import display, HTML
+import os, warnings, logging
 warnings.filterwarnings('ignore')
 pd.set_option('display.float_format', '{:.3f}'.format)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(message)s')
