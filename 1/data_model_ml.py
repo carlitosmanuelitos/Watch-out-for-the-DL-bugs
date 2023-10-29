@@ -490,6 +490,9 @@ data_preprocessor.split_and_plot_data(test_size=0.2, plot=False)
 data_preprocessor.normalize_data(scaler_type='MinMax', plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax', plot=False)
 
+
+
+"""
 config = {
     'regularization': 'ridge',  # 'ridge', 'lasso', or None for plain Linear Regression
     'alpha': 1.0  # regularization strength
@@ -526,9 +529,6 @@ evaluation_results = xgb_model.evaluate_model()
 display(evaluation_results)
 xgb_model.plot_predictions()
 xgb_model.save_model_to_folder(version="final")
-
-
-
 
 lgbm_config = {
     'objective': 'regression',
@@ -569,7 +569,6 @@ svm_model.plot_predictions()
 svm_model.save_model_to_folder(version="final")
 
 
-
 svr_config = {
     'kernel': 'rbf',
     'C': 1.0,
@@ -586,11 +585,6 @@ evaluation_results = svr_model.evaluate_model()
 display(evaluation_results)
 svr_model.plot_predictions()
 svr_model.save_model_to_folder(version="final")
-
-
-
-
-
 
 
 knn_config = {
@@ -650,6 +644,7 @@ display(evaluation_results)
 extra_trees_model.plot_predictions()
 extra_trees_model.save_model_to_folder(version="final")
 
+"""
 
 
 
@@ -677,3 +672,114 @@ extra_trees_model.save_model_to_folder(version="final")
 
 
 
+
+
+
+models = {
+    'Enhanced_Linear_Regression': {
+        'class': Enhanced_Linear_Regression,
+        'config': {
+            'regularization': 'ridge',
+            'alpha': 1.0
+        },
+        'skip': False
+    },
+    'Enhanced_XGBoost': {
+        'class': Enhanced_XGBoost,
+        'config': {
+            'objective': 'reg:squarederror',
+            'learning_rate': 0.1,
+            'n_estimators': 100,
+            'max_depth': 5
+        },
+        'skip': False
+    },
+    'Enhanced_LightGBM': {
+        'class': Enhanced_LightGBM,
+        'config': {
+            'objective': 'regression',
+            'learning_rate': 0.1,
+            'n_estimators': 100,
+            'max_depth': 5
+        },
+        'skip': False
+    },
+    'Enhanced_SVM': {
+        'class': Enhanced_SVM,
+        'config': {
+            'kernel': 'rbf',
+            'C': 1.0,
+            'epsilon': 0.1
+        },
+        'skip': False
+    },
+    'Enhanced_SVR': {
+        'class': Enhanced_SVR,
+        'config': {
+            'kernel': 'rbf',
+            'C': 1.0,
+            'epsilon': 0.1
+        },
+        'skip': False
+    },
+    'Enhanced_KNN': {
+        'class': Enhanced_KNN,
+        'config': {
+            'n_neighbors': 5,
+            'weights': 'uniform',
+            'algorithm': 'auto'
+        },
+        'skip': False
+    },
+    'Enhanced_RandomForest': {
+        'class': Enhanced_RandomForest,
+        'config': {
+            'n_estimators': 100,
+            'criterion': 'poisson',
+            'max_depth': None
+        },
+        'skip': False
+    },
+    'Enhanced_ExtraTrees': {
+        'class': Enhanced_ExtraTrees,
+        'config': {
+            'n_estimators': 100,
+            'criterion': 'squared_error',
+            'max_depth': None
+        },
+        'skip': False
+    }
+}
+
+
+def run_models(models, data_preprocessor, run_only=None, skip=None):
+    for name, model_info in models.items():
+        if run_only and name not in run_only:
+            continue
+        if skip and name in skip:
+            continue
+        if model_info.get('skip'):
+            continue
+
+        model_class = model_info['class']
+        config = model_info['config']
+        
+        model = model_class(data_preprocessor, config, plot=True)
+        model.train_model()
+        model.make_predictions()
+        model.inverse_scale_predictions()
+        train_comparison_df, test_comparison_df = model.compare_predictions()
+        evaluation_results = model.evaluate_model()
+        display(evaluation_results)
+        model.plot_predictions()
+        model.save_model_to_folder(version="final")
+
+
+# Run all models
+run_models(models, data_preprocessor)
+
+# Run only specific models
+run_models(models, data_preprocessor, run_only=['Enhanced_Linear_Regression', 'Enhanced_XGBoost'])
+
+# Skip specific models
+run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])

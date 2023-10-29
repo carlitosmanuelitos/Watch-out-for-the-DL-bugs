@@ -1,0 +1,116 @@
+{
+    "909612": {
+        "regularization": "ridge",
+        "alpha": 1.0
+    },
+    "93ce58": {
+        "objective": "reg:squarederror",
+        "learning_rate": 0.1,
+        "n_estimators": 100,
+        "max_depth": 5
+    },
+    "847f0b": {
+        "objective": "regression",
+        "learning_rate": 0.1,
+        "n_estimators": 100,
+        "max_depth": 5
+    },
+    "6de0eb": {
+        "kernel": "rbf",
+        "C": 1.0,
+        "epsilon": 0.1
+    },
+    "f67d60": {
+        "n_neighbors": 5,
+        "weights": "uniform",
+        "algorithm": "auto"
+    },
+    "cd5fc6": {
+        "n_estimators": 100,
+        "criterion": "poisson",
+        "max_depth": null
+    },
+    "c8cf27": {
+        "n_estimators": 100,
+        "criterion": "squared_error",
+        "max_depth": null
+    },
+    "84d4b5": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "num_lstm_layers": 2,
+        "lstm_units": [
+            50,
+            30
+        ],
+        "dropout": 0.2,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
+    },
+    "95ac09": {
+        "input_shape": [
+            10,
+            30
+        ],
+        "num_rnn_layers": 2,
+        "rnn_units": [
+            50,
+            30
+        ],
+        "dense_units": [
+            1
+        ],
+        "dropout": 0.2,
+        "optimizer": "adam"
+    },
+    "d5ae1c": {
+        "num_gru_layers": 2,
+        "gru_units": [
+            50,
+            30
+        ],
+        "dropout": 0.2,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
+    },
+    "512ccd": {
+        "input_shape": [
+            10,
+            30
+        ],
+        "num_gru_layers": 2,
+        "gru_units": [
+            50,
+            30
+        ],
+        "dense_units": [
+            1
+        ],
+        "dropout": 0.2,
+        "optimizer": "adam"
+    },
+    "17029b": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "lstm_units": [
+            50,
+            30
+        ],
+        "gru_units": [
+            20
+        ],
+        "dropout": 0.2,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
+    }
+}

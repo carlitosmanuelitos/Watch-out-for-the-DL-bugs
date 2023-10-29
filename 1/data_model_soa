@@ -899,30 +899,132 @@ nbeats_model.plot_predictions()
 
 
 
+tcn_config = {
+    'input_shape': (sequence_length, num_features),
+    'nb_filters': 64,
+    'kernel_size': 2,
+    'nb_stacks': 1,
+    'dilations': [1, 2, 4, 8, 16, 32],
+    'padding': 'causal',
+    'use_skip_connections': True,
+    'dropout_rate': 0.2,
+    'return_sequences': False,
+    'activation': 'relu',
+    'kernel_initializer': 'he_normal',
+    'use_batch_norm': False,
+    'optimizer': 'adam'
+}
+
+nbeats_config = {
+    'model_type': 'generic',
+    'lookback': sequence_length,
+    'horizon': 1,
+    'num_generic_neurons': 512,
+    'num_generic_stacks': 30,
+    'num_generic_layers': 4,
+    'num_trend_neurons': 256,
+    'num_trend_stacks': 3,
+    'num_trend_layers': 4,
+    'num_seasonal_neurons': 2048,
+    'num_seasonal_stacks': 3,
+    'num_seasonal_layers': 4,
+    'num_harmonics': 1,
+    'polynomial_term': 3,
+    'loss': 'mae',
+    'learning_rate': 0.001,
+    'batch_size': 1024
+}
+
+# Sample initiation
+wavenet_config = {
+    'input_shape': (sequence_length, num_features),
+    'num_blocks': 4,
+    'filters': 32,
+    'kernel_size': 2,
+    'optimizer': 'adam',
+    'loss': 'mae'
+}
+
+# Configuration for LSTNet
+lstnet_config = {
+    'input_shape': (sequence_length, num_features),
+    'cnn_filters': 64,
+    'gru_units': 64,
+    'kernel_size': 3,
+    'optimizer': 'adam',
+    'loss': 'mae'
+}
+
+transformer_config = {
+    'input_shape': (sequence_length, num_features),
+    'num_layers': 2,
+    'embed_size': 64,
+    'heads': 4,
+    'dropout': 0.2,
+    'forward_expansion': 2,
+    'optimizer': 'adam',
+    'loss': 'mae'
+}
+
+sequence_length = 1  # This should be 10
+nbeats_config = {
+    'model_type': 'generic',
+    'lookback': sequence_length,
+    'horizon': 1,
+    'num_generic_neurons': 512,
+    'num_generic_stacks': 30,
+    'num_generic_layers': 4,
+    'num_trend_neurons': 256,
+    'num_trend_stacks': 3,
+    'num_trend_layers': 4,
+    'num_seasonal_neurons': 2048,
+    'num_seasonal_stacks': 3,
+    'num_seasonal_layers': 4,
+    'num_harmonics': 1,
+    'polynomial_term': 3,
+    'loss': 'mae',
+    'learning_rate': 0.001,
+    'batch_size': 1024
+}
+
+
+
+def run_models(models, data_preprocessor, run_only=None, skip=None):
+    for name, model_info in models.items():
+        if run_only and name not in run_only:
+            continue
+        if skip and name in skip:
+            continue
+        if model_info.get('skip'):
+            continue
+
+        model_class = model_info['class']
+        config = model_info['config']
+        sequence_length = model_info['sequence_length']
+        num_features = model_info['num_features']
+        
+        if num_features is not None:
+            config['input_shape'] = (sequence_length, num_features)
+        
+        model = model_class(model_type=name, data_preprocessor=data_preprocessor, config=config)
+        model.train_model(epochs=100, batch_size=32)
+        model.make_predictions()
+        evaluation_df = model.evaluate_model()
+        print(f"{name} Model Evaluation:\n", evaluation_df)
+        model.plot_history()
+        model.plot_predictions()
+        model.save_model_to_folder(version="final")
 
 
 
 
+# Run all models
+run_models(models, data_preprocessor)
 
+# Run only specific models
+run_models(models, data_preprocessor, run_only=['TCN', 'WAVENET'])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Skip specific models
+run_models(models, data_preprocessor, skip=['NBEATS'])
 
 
