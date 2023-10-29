@@ -354,3 +354,75 @@ class Enhanced_SARIMAX(BaseModel_TS):
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
 
+
+models_config = {
+    'AR': {
+        'class': Enhanced_AR,
+        'config': {
+            'lags': 5
+        },
+        'skip': False
+    },
+    'ARIMA': {
+        'class': Enhanced_ARIMA,
+        'config': {
+            'order': (5, 1, 0)
+        },
+        'skip': False
+    },
+    'SARIMA': {
+        'class': Enhanced_SARIMA,
+        'config': {
+            'order': (1, 1, 1),
+            'seasonal_order': (1, 1, 1, 12)
+        },
+        'skip': False
+    },
+    'ARIMAX': {
+        'class': Enhanced_ARIMAX,
+        'config': {
+            'order': (5, 1, 0)
+            # Add exogenous variables if needed
+        },
+        'skip': False
+    },
+    'SARIMAX': {
+        'class': Enhanced_SARIMAX,
+        'config': {
+            'order': (1, 1, 1),
+            'seasonal_order': (1, 1, 1, 12)
+            # Add exogenous variables if needed
+        },
+        'skip': False
+    }
+}
+
+
+def run_models(models, data_preprocessor, run_only=None, skip=None):
+    for name, model_info in models.items():
+        if run_only and name not in run_only:
+            continue
+        if skip and name in skip:
+            continue
+        if model_info.get('skip'):
+            continue
+
+        model_class = model_info['class']
+        config = model_info['config']
+        
+        model = model_class(data_preprocessor=data_preprocessor, config=config, plot=True)
+        model.train_model()
+        model.make_predictions()
+        evaluation_df = model.evaluate_model()
+        print(f"{name} Model Evaluation:\n", evaluation_df)
+        model.plot_predictions()
+
+# Usage
+data_preprocessor = ...  # Assume this is already initialized and prepared
+run_models(models_config, data_preprocessor)
+
+# Run only specific models
+run_models(models_config, data_preprocessor, run_only=['AR', 'ARIMA'])
+
+# Skip specific models
+run_models(models_config, data_preprocessor, skip=['SARIMA'])
