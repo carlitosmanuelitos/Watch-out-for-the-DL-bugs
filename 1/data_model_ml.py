@@ -1,8 +1,19 @@
 import logging
 import numpy as np
-import os
 import pandas as pd
-
+import json
+import pickle
+import hashlib
+from datetime import datetime, timedelta
+from joblib import dump, load
+import matplotlib.pyplot as plt
+from bokeh.plotting import figure, show, output_notebook, save
+from bokeh.models import (HoverTool, ColumnDataSource, WheelZoomTool, Span, Range1d,
+                          FreehandDrawTool, MultiLine, NumeralTickFormatter, Button, CustomJS)
+from bokeh.layouts import column, row
+from bokeh.io import curdoc, export_png
+from bokeh.models.widgets import CheckboxGroup
+from bokeh.themes import Theme
 # Machine Learning Libraries
 import sklearn
 from sklearn.model_selection import train_test_split, TimeSeriesSplit, cross_val_score
@@ -470,9 +481,9 @@ class Enhanced_ExtraTrees(BaseModel_ML):
         except Exception as e:
             self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
-from data_fetcher import data_btc
+from data_fetcher import btc_data
 from data_preprocessor import UnifiedDataPreprocessor
-df = data_btc.copy()
+df = btc_data.copy()
 
 data_preprocessor = UnifiedDataPreprocessor(df, target_column='Close')
 data_preprocessor.split_and_plot_data(test_size=0.2, plot=False)
