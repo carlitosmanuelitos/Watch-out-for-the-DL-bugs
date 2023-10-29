@@ -9,7 +9,14 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import logging
-
+import hashlib
+from datetime import datetime, timedelta
+from joblib import dump, load
+import sklearn
+from sklearn.model_selection import train_test_split, TimeSeriesSplit, cross_val_score
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, QuantileTransformer, PowerTransformer
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, explained_variance_score, accuracy_score
 import matplotlib.pyplot as plt
 from bokeh.plotting import figure, show, output_notebook, save
 from bokeh.models import (HoverTool, ColumnDataSource, WheelZoomTool, Span, Range1d,
@@ -126,7 +133,7 @@ class BaseModel_TS:
         if not os.path.exists(folder_name):
             os.makedirs(folder_name)
 
-        BaseModel_ML.update_config_hash_mapping(config_hash, self.config, folder_name)
+        BaseModel_TS.update_config_hash_mapping(config_hash, self.config, folder_name)
 
         # Save the model
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

@@ -112,5 +112,17 @@
             1
         ],
         "optimizer": "adam"
+    },
+    "e0952f": {
+        "num_lstm_layers": 2,
+        "lstm_units": [
+            50,
+            30
+        ],
+        "dropout": 0.2,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
     }
 }

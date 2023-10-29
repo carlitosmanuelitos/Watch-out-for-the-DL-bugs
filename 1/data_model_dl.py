@@ -108,7 +108,6 @@ class BaseModelLSTM():
         self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
         self.model.summary()
     
-    
     def _validate_input_sequence(self, X_train, y_train, X_test, y_test):
         """Validate the shape and type of training and testing sequence data."""
         for arr, name in [(X_train, 'X_train_seq'), (y_train, 'y_train_seq'), (X_test, 'X_test_seq'), (y_test, 'y_test_seq')]:
@@ -121,9 +120,7 @@ class BaseModelLSTM():
             # Special check for X_* arrays, which should be 3D for sequence models
             if 'X_' in name and len(arr.shape) != 3:
                 raise ValueError(f"{name} should be a 3D numpy array for sequence models. Found shape {arr.shape}.")
-    
-    
-    
+     
     def train_model(self, epochs=100, batch_size=50, early_stopping=True):
         logging.info(f"Training {self.params['model_type']} model")
         callbacks = [EarlyStopping(monitor='val_loss', patience=10)] if early_stopping else None
@@ -232,8 +229,6 @@ class BaseModelLSTM():
             logging.info("Evaluation completed")
             return self.evaluation_df
    
-
-
     def plot_history(self, plot=True):
         if not plot:
             return
@@ -583,64 +578,68 @@ class CNNLSTMModel(BaseModelLSTM):
 
 
 models = {
-    'TCN': {
-        'class': SOA_TCN,
+    'LSTM': {
+        'class': LSTMModel,  # Replace with your actual class
         'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
-            'nb_filters': 64,
-            'kernel_size': 2,
-            'nb_stacks': 1,
-            'dilations': [1, 2, 4, 8, 16, 32],
-            'padding': 'causal',
-            'use_skip_connections': True,
-            'dropout_rate': 0.2,
-            'return_sequences': False,
-            'activation': 'relu',
-            'kernel_initializer': 'he_normal',
-            'use_batch_norm': False,
+            'input_shape': (10, 5),
+            'num_lstm_layers': 2,
+            'lstm_units': [50, 30],
+            'dropout': 0.2,
+            'dense_units': [1],
             'optimizer': 'adam'
         },
         'skip': False
     },
-    'NBEATS': {
-        'class': SOA_NBEATS,
+    'BiLSTM': {
+        'class': BiLSTMModel,  # Replace with your actual class
         'config': {
-            'model_type': 'generic',
-            'lookback': 1,  # This should be 10
-            'horizon': 1,
-            'num_generic_neurons': 512,
-            'num_generic_stacks': 30,
-            'num_generic_layers': 4,
-            'num_trend_neurons': 256,
-            'num_trend_stacks': 3,
-            'num_trend_layers': 4,
-            'num_seasonal_neurons': 2048,
-            'num_seasonal_stacks': 3,
-            'num_seasonal_layers': 4,
-            'num_harmonics': 1,
-            'polynomial_term': 3,
-            'loss': 'mae',
-            'learning_rate': 0.001,
-            'batch_size': 1024
+            'num_lstm_layers': 2,
+            'lstm_units': [50, 30],
+            'dropout': 0.2,
+            'dense_units': [1],
+            'optimizer': 'adam'
         },
         'skip': False
     },
-    'WAVENET': {
-        'class': SOA_WAVENET,
+    'GRU': {
+        'class': GRUModel,  # Replace with your actual class
         'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
-            'num_blocks': 4,
-            'filters': 32,
-            'kernel_size': 2,
-            'optimizer': 'adam',
-            'loss': 'mae'
+            'num_gru_layers': 2,
+            'gru_units': [50, 30],
+            'dropout': 0.2,
+            'dense_units': [1],
+            'optimizer': 'adam'
+        },
+        'skip': False
+    },
+    'BiGRU': {
+        'class': BiGRUModel,  # Replace with your actual class
+        'config': {
+            'input_shape': (10, 30),
+            'num_gru_layers': 2,
+            'gru_units': [50, 30],
+            'dense_units': [1],
+            'dropout': 0.2,
+            'optimizer': 'adam'
+        },
+        'skip': False
+    },
+    'SimpleRNN': {
+        'class': SimpleRNN,  # Replace with your actual class
+        'config': {
+            'input_shape': (10, 30),
+            'num_rnn_layers': 2,
+            'rnn_units': [50, 30],
+            'dense_units': [1],
+            'dropout': 0.2,
+            'optimizer': 'adam'
         },
         'skip': False
     },
     'StackedRNN': {
-        'class': StackedRNNModel,
+        'class': StackedRNNModel,  # Replace with your actual class
         'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'input_shape': (10, 5),
             'lstm_units': [50, 30],
             'gru_units': [20],
             'dropout': 0.2,
@@ -650,9 +649,9 @@ models = {
         'skip': False
     },
     'AttentionLSTM': {
-        'class': AttentionLSTMModel,
+        'class': AttentionLSTMModel,  # Replace with your actual class
         'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'input_shape': (10, 5),
             'num_lstm_layers': 2,
             'lstm_units': [50, 30],
             'dropout': 0.2,
@@ -662,9 +661,9 @@ models = {
         'skip': False
     },
     'CNNLSTM': {
-        'class': CNNLSTMModel,
+        'class': CNNLSTMModel,  # Replace with your actual class
         'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
+            'input_shape': (10, 5),
             'num_conv_layers': 1,
             'conv_filters': [64],
             'conv_kernel_size': [3],
@@ -675,46 +674,9 @@ models = {
             'optimizer': 'adam'
         },
         'skip': False
-    },
-    'LSTNET': {
-        'class': SOA_LSTNET,
-        'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
-            'cnn_filters': 64,
-            'gru_units': 64,
-            'kernel_size': 3,
-            'optimizer': 'adam',
-            'loss': 'mae'
-        },
-        'skip': False
-    },
-    'TRANSFORMER': {
-        'class': SOA_TRANSFORMER,
-        'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
-            'num_layers': 2,
-            'embed_size': 64,
-            'heads': 4,
-            'dropout': 0.2,
-            'forward_expansion': 2,
-            'optimizer': 'adam',
-            'loss': 'mae'
-        },
-        'skip': False
-    },
-   'BiGRU': {
-        'class': BiGRUModel,
-        'config': {
-            'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
-            'num_gru_layers': 2,
-            'gru_units': [50, 30],
-            'dense_units': [1],
-            'dropout': 0.2,
-            'optimizer': 'adam'
-        },
-        'skip': False
     }
 }
+
 
 def run_models(models, run_only=None, skip=None):
     for name, model_info in models.items():
@@ -736,18 +698,19 @@ def run_models(models, run_only=None, skip=None):
         print(f"{name} Model Evaluation:\n", evaluation_df)
         model.plot_history()
         model.plot_predictions()
-        model.save_model_to_folder(version="1")
+        model.save_model_to_folder(version="2")
 
 
 
 # Run all models
-run_models(models)
+#run_models(models)
 
 # Run only specific models
-run_models(models, run_only=['LSTM', 'GRU'])
+run_models(models, run_only=['LSTM','BiLSTM','GRU','BiGRU'])
 
 # Skip specific models
-run_models(models, skip=['SimpleRNN'])
+#run_models(models, skip=['SimpleRNN'])
+
 
 
 
