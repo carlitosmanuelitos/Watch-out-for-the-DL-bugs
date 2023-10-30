@@ -366,7 +366,6 @@ class SOA_TCN(BaseModel_DL_SOA):
         )
         logger.info("Training completed.")
 
-
 class SOA_NBEATS(BaseModel_DL_SOA):
     def __init__(self, model_type, data_preprocessor, config):
         super(SOA_NBEATS, self).__init__(model_type, data_preprocessor, config)
@@ -813,12 +812,7 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 
         model_class = model_info['class']
         config = model_info['config']
-        sequence_length = model_info['sequence_length']
-        num_features = model_info['num_features']
-        
-        if num_features is not None:
-            config['input_shape'] = (sequence_length, num_features)
-        
+
         model = model_class(model_type=name, data_preprocessor=data_preprocessor, config=config)
         model.train_model(epochs=100, batch_size=32)
         model.make_predictions()
@@ -826,16 +820,16 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
         print(f"{name} Model Evaluation:\n", evaluation_df)
         model.plot_history()
         model.plot_predictions()
-        model.save_model_to_folder(version="final")
-
+        # Uncomment the following line if the save_model_to_folder method is available in your SOA class
+        # model.save_model_to_folder(version="2")
 
 # Run all models
 run_models(models, data_preprocessor)
 
 # Run only specific models
-#run_models(models, data_preprocessor, run_only=['TCN'])
+# run_models(models, data_preprocessor, run_only=['TCN'])
 
 # Skip specific models
-#run_models(models, data_preprocessor, skip=['NBEATS'])
+# run_models(models, data_preprocessor, skip=['N-BEATS'])
 
 
