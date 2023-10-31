@@ -74,7 +74,7 @@ class EnhancedRNNHyperModel(HyperModel):
                     activation=hp.Choice(f'lstm_activation_{i}', values=['tanh', 'sigmoid', 'relu']),
                     recurrent_activation=hp.Choice(f'lstm_recurrent_activation_{i}', values=['sigmoid', 'tanh', 'relu']),
                     recurrent_dropout=hp.Float(f'recurrent_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05),
-                    return_sequences=True if i < num_lstm_layers - 1 else hp.Boolean('return_sequences')
+                    return_sequences=True if i < num_lstm_layers - 1 else hp.Boolean('return_sequences', default=False)
                 )))
                 model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
@@ -86,7 +86,7 @@ class EnhancedRNNHyperModel(HyperModel):
                     activation=hp.Choice(f'gru_activation_{i}', values=['tanh', 'sigmoid', 'relu']),
                     recurrent_activation=hp.Choice(f'gru_recurrent_activation_{i}', values=['sigmoid', 'tanh', 'relu']),
                     recurrent_dropout=hp.Float(f'gru_recurrent_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05),
-                    return_sequences=True if i < num_gru_layers - 1 else hp.Boolean('gru_return_sequences')
+                    return_sequences=True if i < num_gru_layers - 1 else False  # Changed this line
                 ))
                 model.add(Dropout(hp.Float(f'gru_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
@@ -98,7 +98,7 @@ class EnhancedRNNHyperModel(HyperModel):
                     activation=hp.Choice(f'gru_activation_{i}', values=['tanh', 'sigmoid', 'relu']),
                     recurrent_activation=hp.Choice(f'gru_recurrent_activation_{i}', values=['sigmoid', 'tanh', 'relu']),
                     recurrent_dropout=hp.Float(f'gru_recurrent_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05),
-                    return_sequences=True if i < num_gru_layers - 1 else hp.Boolean('gru_return_sequences')
+                    return_sequences=True if i < num_gru_layers - 1 else False  # Changed this line
                 )))
                 model.add(Dropout(hp.Float(f'gru_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
@@ -109,7 +109,7 @@ class EnhancedRNNHyperModel(HyperModel):
                     units=hp.Int(f'rnn_units_{i}', min_value=32, max_value=256, step=32),
                     activation=hp.Choice(f'rnn_activation_{i}', values=['tanh', 'sigmoid', 'relu']),
                     recurrent_dropout=hp.Float(f'rnn_recurrent_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05),
-                    return_sequences=True if i < num_rnn_layers - 1 else hp.Boolean('rnn_return_sequences')
+                    return_sequences=True if i < num_gru_layers - 1 else False  # Changed this line
                 ))
                 model.add(Dropout(hp.Float(f'rnn_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
