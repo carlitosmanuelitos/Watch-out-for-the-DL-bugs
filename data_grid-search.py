@@ -206,7 +206,7 @@ for model_type in model_types:
         max_trials=50,
         directory='bayesian_optimization',
         project_name=f'{model_type}',
-        overwrite=True
+        overwrite=False
     )
 
     # Define your callbacks here
