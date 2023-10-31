@@ -18,10 +18,7 @@ import pandas as pd
 # Other settings
 from IPython.display import display, HTML
 import os, warnings, logging
-warnings.filterwarnings('ignore')
-pd.set_option('display.float_format', '{:.3f}'.format)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(message)s')
-logger = logging.getLogger(__name__)
+
 
 
 # LSTM Sequece-to-One
@@ -34,43 +31,30 @@ data_preprocessor.normalize_data(scaler_type='MinMax',plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax',plot=False)
 n_steps = 10 
 X_train_seq, y_train_seq, X_test_seq, y_test_seq = data_preprocessor.prepare_data_for_recurrent(n_steps, seq_to_seq=False)
+print("LSTM Sequence-to-One Data Shapes:")
+print("X_train_seq:", X_train_seq.shape,"y_train_seq:", y_train_seq.shape, "X_test_seq:", X_test_seq.shape, "y_test_seq:", y_test_seq.shape)
+print("----")
 
 class EnhancedRNNHyperModel(HyperModel):
-    """
-    A HyperModel subclass for building enhanced LSTM models for hyperparameter tuning.
-    The LSTM model is configured with the following hyperparameters:
-
-    Searchable Hyperparameters:
-        - num_lstm_layers (int): The number of LSTM layers (Range: 1 to 4).
-        - lstm_units (int): The number of units in each LSTM layer (Range: 32 to 256, step: 32).
-        - lstm_activation (str): Activation function to use in LSTM layers. Can be 'tanh', 'sigmoid', or 'relu'.
-        - lstm_recurrent_activation (str): Activation function to use for the recurrent step. Default is 'sigmoid'.
-        - recurrent_dropout (float): The dropout rate for the recurrent units in each LSTM layer (Range: 0.0 to 0.5, step: 0.05).
-        - dropout (float): The dropout rate for Dropout layers after each LSTM layer (Range: 0.0 to 0.5, step: 0.05).
-        - return_sequences (bool): Whether to return the last output in the output sequence, or the full sequence.
-        - dense_units (int): The number of units in the Dense layer (Range: 1 to 3).
-        - dense_activation (str): The activation function to use in the Dense layer. Can be 'relu', 'linear', 'sigmoid', or 'tanh'.
-        - learning_rate (float): The learning rate for the optimizer. Can be 1e-2, 1e-3, or 1e-4.
-        - optimizer (str): The optimizer to use. Can be 'adam', 'sgd', 'rmsprop', 'adagrad', 'adadelta', 'nadam', or 'ftrl'.
-
-    Hardcoded Parameters:
-        - Loss Function: 'mean_squared_error'
-        - Metrics: ['mean_absolute_error']
-        - Input Shape: Determined by the shape of training data.
-    """
-    def __init__(self, data_preprocessor):  # data_preprocessor passed as argument
+    def __init__(self, data_preprocessor, model_type):  # data_preprocessor passed as argument
         self.input_shape = data_preprocessor.X_train_seq.shape[1:]
         self.X_train = data_preprocessor.X_train_seq
         self.y_train = data_preprocessor.y_train_seq
         self.X_test = data_preprocessor.X_test_seq
         self.y_test = data_preprocessor.y_test_seq
+        self.model_type = model_type
         self.logger = logging.getLogger(__name__)
+        # Debugging Information
+        print(f"Initializing EnhancedRNNHyperModel with model_type={self.model_type}")
+        print(f"Input shape: {self.input_shape}")
+        print(f"Training data shape: X={self.X_train.shape}, y={self.y_train.shape}")
+        print(f"Test data shape: X={self.X_test.shape}, y={self.y_test.shape}")
 
     def build(self, hp):
+        self.logger.debug(f"Building model with hyperparameters: {hp.values}")
         model = Sequential()
-        model_type = hp.Choice('model_type', ['LSTM', 'BiLSTM', 'GRU', 'BiGRU'])
 
-        if model_type == 'LSTM':
+        if self.model_type == 'LSTM':
             num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
             for i in range(num_lstm_layers):
                 model.add(LSTM(
@@ -82,7 +66,7 @@ class EnhancedRNNHyperModel(HyperModel):
                 ))
                 model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
-        elif model_type == 'BiLSTM':
+        elif self.model_type == 'BiLSTM':
             num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
             for i in range(num_lstm_layers):
                 model.add(Bidirectional(LSTM(
@@ -94,7 +78,7 @@ class EnhancedRNNHyperModel(HyperModel):
                 )))
                 model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
-        elif model_type == 'GRU':
+        elif self.model_type == 'GRU':
             num_gru_layers = hp.Int('num_gru_layers', min_value=1, max_value=4)
             for i in range(num_gru_layers):
                 model.add(GRU(
@@ -106,7 +90,7 @@ class EnhancedRNNHyperModel(HyperModel):
                 ))
                 model.add(Dropout(hp.Float(f'gru_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
-        elif model_type == 'BiGRU':
+        elif self.model_type == 'BiGRU':
             num_gru_layers = hp.Int('num_gru_layers', min_value=1, max_value=4)
             for i in range(num_gru_layers):
                 model.add(Bidirectional(GRU(
@@ -118,7 +102,7 @@ class EnhancedRNNHyperModel(HyperModel):
                 )))
                 model.add(Dropout(hp.Float(f'gru_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
-        elif model_type == 'SimpleRNN':
+        elif self.model_type == 'SimpleRNN':
             num_rnn_layers = hp.Int('num_rnn_layers', min_value=1, max_value=4)
             for i in range(num_rnn_layers):
                 model.add(SimpleRNN(
@@ -129,7 +113,7 @@ class EnhancedRNNHyperModel(HyperModel):
                 ))
                 model.add(Dropout(hp.Float(f'rnn_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
-        elif model_type == 'StackedRNN':
+        elif self.model_type == 'StackedRNN':
             num_stacked_layers = hp.Int('num_stacked_layers', min_value=1, max_value=4)
             for i in range(num_stacked_layers):
                 rnn_type = hp.Choice(f'rnn_type_{i}', values=['SimpleRNN', 'LSTM', 'GRU'])
@@ -157,7 +141,7 @@ class EnhancedRNNHyperModel(HyperModel):
                     ))
                 model.add(Dropout(hp.Float(f'stacked_rnn_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
                     
-        elif model_type == 'AttentionLSTM':
+        elif self.model_type == 'AttentionLSTM':
             num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
             for i in range(num_lstm_layers):
                 model.add(LSTM(
@@ -172,7 +156,7 @@ class EnhancedRNNHyperModel(HyperModel):
             model.add(Attention(use_scale=hp.Bool('attention_use_scale')))
             model.add(GlobalAveragePooling1D())
 
-        elif model_type == 'CNNLSTM':
+        elif self.model_type == 'CNNLSTM':
             num_conv_layers = hp.Int('num_conv_layers', min_value=1, max_value=4)
             for i in range(num_conv_layers):
                 model.add(Conv1D(
@@ -212,14 +196,14 @@ class EnhancedRNNHyperModel(HyperModel):
 
 best_models = {}
 #model_types = ['LSTM', 'BiLSTM', 'GRU', 'BiGRU', 'SimpleRNN', 'StackedRNN', 'AttentionLSTM', 'CNNLSTM']
-model_types = ['LSTM']
+model_types = ['LSTM','BiLSTM','GRU']
 for model_type in model_types:
     print(f"Optimizing {model_type}...")
     
     tuner = BayesianOptimization(
-        hypermodel=EnhancedRNNHyperModel(data_preprocessor),  # Make sure class name is consistent
+        hypermodel=EnhancedRNNHyperModel(data_preprocessor, model_type),  # Make sure class name is consistent
         objective='val_loss',
-        max_trials=3,
+        max_trials=50,
         directory='bayesian_optimization',
         project_name=f'{model_type}',
         overwrite=True
@@ -229,8 +213,11 @@ for model_type in model_types:
     early_stopping_callback = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='min', restore_best_weights=True)
     lr_schedule = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, verbose=1, mode='min')
 
-    tuner.search(data_preprocessor.X_train, data_preprocessor.y_train, epochs=5, validation_split=0.2, callbacks=[early_stopping_callback,lr_schedule])
+    tuner.search(data_preprocessor.X_train_seq, data_preprocessor.y_train_seq, epochs=20, validation_split=0.2, callbacks=[early_stopping_callback,lr_schedule])
 
     # Get the best model for this type
     best_model = tuner.get_best_models(num_models=1)[0]
     best_models[model_type] = best_model  # Save the best model for each type
+
+
+
