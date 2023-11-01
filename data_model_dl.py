@@ -51,6 +51,7 @@ logger = logging.getLogger(__name__)
 # LSTM Sequece-to-One
 from data_preprocessor import UnifiedDataPreprocessor
 from data_fetcher import btc_data
+
 df = btc_data.copy()
 data_preprocessor = UnifiedDataPreprocessor(df, target_column='Close')
 data_preprocessor.split_and_plot_data(test_size=0.2, plot=False)
@@ -58,13 +59,10 @@ data_preprocessor.normalize_data(scaler_type='MinMax',plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax',plot=False)
 n_steps = 10 
 X_train_seq, y_train_seq, X_test_seq, y_test_seq = data_preprocessor.prepare_data_for_recurrent(n_steps, seq_to_seq=False)
-print((data_preprocessor.X_train_seq).shape)
-print((data_preprocessor.y_train_seq).shape)
-print((data_preprocessor.X_test_seq).shape)
-print((data_preprocessor.y_test_seq).shape)
+print("LSTM Sequence-to-One Data Shapes:")
+print("X_train_seq:", X_train_seq.shape,"y_train_seq:", y_train_seq.shape, "X_test_seq:", X_test_seq.shape, "y_test_seq:", y_test_seq.shape)
+print("----")
 
-
-print(hasattr(data_preprocessor, 'X_train_seq'))
 
 class BaseModelLSTM():
     """
@@ -661,19 +659,33 @@ models = {
         'skip': False
     },
     'CNNLSTM': {
-        'class': CNNLSTMModel,  # Replace with your actual class
-        'config': {
-            'input_shape': (10, 5),
-            'num_conv_layers': 1,
-            'conv_filters': [64],
-            'conv_kernel_size': [3],
-            'num_lstm_layers': 1,
-            'lstm_units': [50],
-            'dropout': 0.2,
-            'dense_units': [1],
-            'optimizer': 'adam'
-        },
-        'skip': False
+    'class': CNNLSTMModel,
+    'config': {
+        'input_shape': (10, 5),
+        'num_conv_layers': 2,  # Increased the number of convolution layers
+        'conv_filters': [64, 32],  # Additional filter
+        'conv_kernel_size': [3, 2],  # Additional kernel size
+        'num_lstm_layers': 1,
+        'lstm_units': [50],
+        'dropout': 0.2,
+        'dense_units': [1],
+        'optimizer': 'adam'
+    },
+    'skip': False
+    #'CNNLSTM': {
+    #    'class': CNNLSTMModel,  # Replace with your actual class
+    #    'config': {
+    #        'input_shape': (10, 5),
+    #        'num_conv_layers': 1,
+    #        'conv_filters': [64],
+    #        'conv_kernel_size': [3],
+    #        'num_lstm_layers': 1,
+    #        'lstm_units': [50],
+    #        'dropout': 0.2,
+    #        'dense_units': [1],
+    #        'optimizer': 'adam'
+    #    },
+    #    'skip': False
     }
 }
 
@@ -703,10 +715,10 @@ def run_models(models, run_only=None, skip=None):
 
 
 # Run all models
-run_models(models)
+#run_models(models)
 
 # Run only specific models
-#run_models(models, run_only=['SimpleRNN'])
+run_models(models, run_only=['CNNLSTM'])
 
 # Skip specific models
 #run_models(models, skip=['SimpleRNN'])
