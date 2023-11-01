@@ -65,7 +65,10 @@ class EnhancedRNNHyperModel(HyperModel):
                     return_sequences=True if i < num_lstm_layers - 1 else hp.Boolean('return_sequences')
                 ))
                 model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
-
+                model.add(Dense(hp.Int('dense_units', min_value=1, max_value=3),
+                                        activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+                ))
+                        
         elif self.model_type == 'BiLSTM':
             num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
             for i in range(num_lstm_layers):
@@ -77,6 +80,9 @@ class EnhancedRNNHyperModel(HyperModel):
                     return_sequences=True if i < num_lstm_layers - 1 else False  # Corrected this line
                 )))
                 model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+                model.add(Dense(hp.Int('dense_units', min_value=1, max_value=3),
+                                        activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+                ))
 
         elif self.model_type == 'GRU':
             num_gru_layers = hp.Int('num_gru_layers', min_value=1, max_value=4)
@@ -89,6 +95,9 @@ class EnhancedRNNHyperModel(HyperModel):
                     return_sequences=True if i < num_gru_layers - 1 else False  # Changed this line
                 ))
                 model.add(Dropout(hp.Float(f'gru_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+                model.add(Dense(hp.Int('dense_units', min_value=1, max_value=3),
+                                        activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+                ))
 
         elif self.model_type == 'BiGRU':
             num_gru_layers = hp.Int('num_gru_layers', min_value=1, max_value=4)
@@ -101,6 +110,9 @@ class EnhancedRNNHyperModel(HyperModel):
                     return_sequences=True if i < num_gru_layers - 1 else False  # Changed this line
                 )))
                 model.add(Dropout(hp.Float(f'gru_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+                model.add(Dense(hp.Int('dense_units', min_value=1, max_value=3),
+                                        activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+                ))
 
         elif self.model_type == 'SimpleRNN':
             num_rnn_layers = hp.Int('num_rnn_layers', min_value=1, max_value=4)
@@ -112,6 +124,9 @@ class EnhancedRNNHyperModel(HyperModel):
                     return_sequences=True if i < num_rnn_layers - 1 else False  # Changed this line
                 ))
                 model.add(Dropout(hp.Float(f'rnn_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+                model.add(Dense(hp.Int('dense_units', min_value=1, max_value=3),
+                                        activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+                ))
 
         elif self.model_type == 'StackedRNN':
             num_stacked_layers = hp.Int('num_stacked_layers', min_value=1, max_value=4)
@@ -140,21 +155,40 @@ class EnhancedRNNHyperModel(HyperModel):
                         return_sequences=True if i < num_stacked_layers - 1 else hp.Boolean('stacked_rnn_return_sequences')
                     ))
                 model.add(Dropout(hp.Float(f'stacked_rnn_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+                model.add(Dense(hp.Int('dense_units', min_value=1, max_value=3),
+                                        activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+                ))
                     
         elif self.model_type == 'AttentionLSTM':
+            input_layer = Input(shape=self.input_shape)
+            x = input_layer
+            
             num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
             for i in range(num_lstm_layers):
-                model.add(LSTM(
+                x = LSTM(
                     units=hp.Int(f'lstm_units_{i}', min_value=32, max_value=256, step=32),
                     activation=hp.Choice(f'lstm_activation_{i}', values=['tanh', 'sigmoid', 'relu']),
                     recurrent_dropout=hp.Float(f'recurrent_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05),
-                    return_sequences=True  # For Attention, the last LSTM layer should also return sequences
-                ))
-                model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+                    return_sequences=True
+                )(x)
+                x = Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05))(x)
+            
+            # Duplicate the tensor to act as both `query` and `value`
+            query_value = Lambda(lambda x: [x, x])(x)
             
             # Adding attention layer
-            model.add(Attention(use_scale=hp.Bool('attention_use_scale')))
-            model.add(GlobalAveragePooling1D())
+            x = Attention(use_scale=hp.Boolean('attention_use_scale'))(query_value)
+
+            # Flatten the tensor or use GlobalAveragePooling
+            x = GlobalAveragePooling1D()(x)
+            
+            # Final Dense Layer
+            output_layer = Dense(
+                hp.Int('dense_units', min_value=1, max_value=3),
+                activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
+            )(x)
+            
+            model = Model(inputs=input_layer, outputs=output_layer)
 
         elif self.model_type == 'CNNLSTM':
             num_conv_layers = hp.Int('num_conv_layers', min_value=1, max_value=4)
@@ -169,21 +203,7 @@ class EnhancedRNNHyperModel(HyperModel):
             model.add(GlobalMaxPooling1D())
             model.add(Reshape((1, hp.Int('reshape_size', min_value=32, max_value=256, step=32))))
             
-            num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
-            for i in range(num_lstm_layers):
-                model.add(LSTM(
-                    units=hp.Int(f'lstm_units_{i}', min_value=32, max_value=256, step=32),
-                    activation=hp.Choice(f'lstm_activation_{i}', values=['tanh', 'sigmoid', 'relu']),
-                    recurrent_dropout=hp.Float(f'recurrent_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05),
-                    return_sequences=True if i < num_lstm_layers - 1 else hp.Boolean('return_sequences')
-                ))
-                model.add(Dropout(hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
 
-
-        model.add(Dense(
-            hp.Int('dense_units', min_value=1, max_value=3),
-            activation=hp.Choice('dense_activation', values=['relu', 'linear', 'sigmoid', 'tanh'])
-        ))
 
         model.compile(
             optimizer=hp.Choice('optimizer', values=['adam', 'sgd', 'rmsprop', 'adagrad', 'adadelta', 'nadam', 'ftrl']),
@@ -196,7 +216,7 @@ class EnhancedRNNHyperModel(HyperModel):
 
 best_models = {}
 #model_types = ['LSTM', 'BiLSTM', 'GRU', 'BiGRU', 'SimpleRNN', 'StackedRNN', 'AttentionLSTM', 'CNNLSTM']
-model_types = ['BiLSTM']
+model_types = ['AttentionLSTM']
 for model_type in model_types:
     print(f"Optimizing {model_type}...")
     
