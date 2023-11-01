@@ -191,18 +191,34 @@ class EnhancedRNNHyperModel(HyperModel):
             model = Model(inputs=input_layer, outputs=output_layer)
 
         elif self.model_type == 'CNNLSTM':
+            # Conv1D layers
             num_conv_layers = hp.Int('num_conv_layers', min_value=1, max_value=4)
             for i in range(num_conv_layers):
                 model.add(Conv1D(
                     filters=hp.Int(f'conv_filters_{i}', min_value=32, max_value=256, step=32),
                     kernel_size=hp.Int(f'conv_kernel_size_{i}', min_value=1, max_value=5),
-                    activation=hp.Choice(f'conv_activation_{i}', values=['relu', 'tanh', 'sigmoid'])
+                    activation=hp.Choice(f'conv_activation_{i}', values=['relu', 'tanh', 'sigmoid']),
+                    input_shape=self.input_shape if i == 0 else None,
+                    padding='same'
                 ))
-                model.add(MaxPooling1D(pool_size=hp.Int(f'pool_size_{i}', min_value=2, max_value=4)))
-            
-            model.add(GlobalMaxPooling1D())
-            model.add(Reshape((1, hp.Int('reshape_size', min_value=32, max_value=256, step=32))))
-            
+
+                if model.output_shape[1] > 1:  # To prevent negative dimension size
+                    model.add(MaxPooling1D(pool_size=hp.Int(f'pool_size_{i}', min_value=2, max_value=4)))
+
+            # Instead of Flatten layer
+            model.add(Reshape((1, -1)))  # Here, -1 would automatically calculate the size of the last dimension
+
+            # LSTM layers
+            num_lstm_layers = hp.Int('num_lstm_layers', min_value=1, max_value=4)
+            for i in range(num_lstm_layers):
+                model.add(LSTM(
+                    units=hp.Int(f'lstm_units_{i}', min_value=32, max_value=256, step=32),
+                    return_sequences=True if i < num_lstm_layers - 1 else False
+                ))
+                model.add(Dropout(hp.Float(f'lstm_dropout_{i}', min_value=0.0, max_value=0.5, step=0.05)))
+
+            # Final Dense layer
+            model.add(Dense(1))
 
 
         model.compile(
@@ -216,7 +232,7 @@ class EnhancedRNNHyperModel(HyperModel):
 
 best_models = {}
 #model_types = ['LSTM', 'BiLSTM', 'GRU', 'BiGRU', 'SimpleRNN', 'StackedRNN', 'AttentionLSTM', 'CNNLSTM']
-model_types = ['AttentionLSTM']
+model_types = ['CNNLSTM']
 for model_type in model_types:
     print(f"Optimizing {model_type}...")
     

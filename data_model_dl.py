@@ -624,7 +624,7 @@ models = {
         },
         'skip': False
     },
-    'SimpleRNN': {
+    'SimpleRNN': {  
         'class': SimpleRNNModel,  # Replace with your actual class
         'config': {
             'input_shape': (10, 30),
