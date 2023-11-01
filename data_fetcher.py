@@ -108,8 +108,41 @@ class CryptoData:
         logger.info(f"Display data formatted successfully for {symbol}.")
         return display_df
     
+    def get_all_display_data(self) -> pd.DataFrame:
+        """Fetches display data for all specified cryptocurrencies and concatenates them into a single DataFrame."""
+        logger.info("Getting display data for all specified cryptocurrencies.")
+        display_data_list = []
+        
+        for symbol in self.crypto_symbols:
+            display_df = self.get_display_data(symbol)
+            display_df['Ticker'] = symbol  # Add a column for the ticker symbol
+            display_data_list.append(display_df)
+        
+        # Concatenate all the DataFrames along the index
+        all_display_data = pd.concat(display_data_list, keys=self.crypto_symbols)
+        
+        logger.info("All display data retrieved successfully.")
+        return all_display_data
 
-crypto_data_obj = CryptoData(['BTC', 'ETH', 'ADA'])
-all_data = crypto_data_obj.get_all_data(overwrite=True)
-btc_data, eth_data, ada_data = all_data['BTC'], all_data['ETH'], all_data['ADA']
-btc_display_data = crypto_data_obj.get_display_data('BTC')
+
+    
+# Part 1 - Data Fetching
+def run_data_fetcher(run: bool, tickers: list, get_display_data=False, overwrite=False):
+    if not run:
+        return None, None  # Return None for all objects if not running
+    
+    # Fetch the data
+    crypto_data_obj = CryptoData(tickers)
+    all_data = crypto_data_obj.get_all_data(overwrite=overwrite)
+    
+    all_display_data = None
+    if get_display_data:
+        all_display_data = crypto_data_obj.get_all_display_data()
+    
+    # Return the objects
+    return crypto_data_obj, all_data, all_display_data
+
+tickers = ['BTC','ETH','ADA']
+crypto_data_obj, all_data, all_display_data = run_data_fetcher(True, tickers, get_display_data=True, overwrite=True)
+btc_data = all_data['BTC']
+btc_display_data = all_display_data.loc['BTC']

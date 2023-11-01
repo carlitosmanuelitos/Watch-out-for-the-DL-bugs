@@ -3,6 +3,7 @@ import numpy as np
 from scipy.signal import detrend
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from statsmodels.tsa.api import seasonal_decompose
+from data_fetcher import btc_data
 
 
 # Other settings
@@ -217,10 +218,18 @@ class Feature_Eng_Tech:
         """
         return self.data_eng.copy()
     
-from data_fetcher import btc_data
-feature_eng = Feature_Eng_Tech(btc_data, target_column='Close')
 
-# Define a configuration for feature engineering
+def run_feature_engineering(run: bool, config: dict):
+    if not run:
+        return None
+
+    feature_eng = Feature_Eng_Tech(btc_data, target_column='Close')
+    feature_eng.feature_engineering(config)
+    data_eng = feature_eng.get_engineered_data()
+
+    return data_eng
+
+# This is how you can call it in the same script
 config = {
     "handle_missing_values": True,
     "add_date_features": True,
@@ -233,9 +242,5 @@ config = {
     "add_fourier_features": True,
 }
 
-# Apply feature engineering based on the configuration
-feature_eng.feature_engineering(config)
-
-# Get the engineered data
-data_eng = feature_eng.get_engineered_data()
-display(data_eng)
+#data_eng = run_feature_engineering(True, config)
+#display(data_eng)

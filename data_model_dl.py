@@ -57,8 +57,7 @@ data_preprocessor = UnifiedDataPreprocessor(df, target_column='Close')
 data_preprocessor.split_and_plot_data(test_size=0.2, plot=False)
 data_preprocessor.normalize_data(scaler_type='MinMax',plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax',plot=False)
-n_steps = 10 
-X_train_seq, y_train_seq, X_test_seq, y_test_seq = data_preprocessor.prepare_data_for_recurrent(n_steps, seq_to_seq=False)
+X_train_seq, y_train_seq, X_test_seq, y_test_seq = data_preprocessor.prepare_data_for_recurrent(n_steps=10, seq_to_seq=False)
 print("LSTM Sequence-to-One Data Shapes:")
 print("X_train_seq:", X_train_seq.shape,"y_train_seq:", y_train_seq.shape, "X_test_seq:", X_test_seq.shape, "y_test_seq:", y_test_seq.shape)
 print("----")
@@ -362,7 +361,6 @@ class BaseModelLSTM():
         full_path = os.path.join(folder_name, filename)
         self.model.save(full_path)
         print(f"Model saved to {full_path}")
-
 
 class LSTMModel(BaseModelLSTM):
     def _initialize_model(self):
@@ -718,7 +716,7 @@ def run_models(models, run_only=None, skip=None):
 #run_models(models)
 
 # Run only specific models
-run_models(models, run_only=['CNNLSTM'])
+run_models(models, run_only=['StackedRNN','AttentionLSTM','CNNLSTM'])
 
 # Skip specific models
 #run_models(models, skip=['SimpleRNN'])

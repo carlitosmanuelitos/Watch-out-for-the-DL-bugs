@@ -6,6 +6,7 @@ from statsmodels.tsa.stattools import adfuller, grangercausalitytests, kpss
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import acf, pacf
 from scipy.stats import jarque_bera, kstest
+from data_fetcher import btc_data
 
 
 # Other settings
@@ -16,7 +17,7 @@ pd.set_option('display.float_format', '{:.3f}'.format)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(message)s')
 logger = logging.getLogger(__name__)
 
-class TimeSeriesAnalysis1:
+class TimeSeriesAnalysis:
     """
     A class to perform various time series analysis tasks such as stationarity checks, volatility modeling, and decomposition.
 
@@ -386,24 +387,15 @@ class TimeSeriesAnalysis1:
         table_content.append('</table>')
         return "\n".join(table_content)
     
-from data_fetcher import btc_data
-# Instantiate the TimeSeriesAnalysis class
-tsa = TimeSeriesAnalysis1(btc_data, target='Close')
-
-# Check the diagnostics on the original series
+tsa = TimeSeriesAnalysis(btc_data, target='Close')
 print("Diagnostics for Original Series:")
 original_diagnostics = tsa.diagnostic_check()
-
-# Make the series stationary and update the data attribute
+    # Make the series stationary and update the data attribute
 stationary_series = tsa.make_stationary(method='log')
 tsa.data[tsa.target] = stationary_series
 
-# Visualize the series after transformation
 tsa.visualize_stationarity(show_plot=True)
-
-# Create a new instance with the stationary series
-tsa_stationary = TimeSeriesAnalysis1(pd.DataFrame({tsa.target: stationary_series}), target=tsa.target)
-
-# Check the diagnostics on the stationary series
+    # Create a new instance with the stationary series
+tsa_stationary = TimeSeriesAnalysis(pd.DataFrame({tsa.target: stationary_series}), target=tsa.target)
 print("\nDiagnostics for Stationary Series:")
 stationary_diagnostics = tsa_stationary.diagnostic_check()

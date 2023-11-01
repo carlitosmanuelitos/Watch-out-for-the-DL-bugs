@@ -1,7 +1,8 @@
-from data_fetcher import btc_data
-from sys import displayhook
 import pandas as pd
 import numpy as np
+from data_fetcher import run_data_fetcher
+from data_fetcher import btc_data
+
 
 # Other settings
 from IPython.display import display, HTML
@@ -92,16 +93,23 @@ class CryptoDataAnalytics:
         logger.info(f"Analysis saved to {filepath}.")
 
 
-# Part 2 - Data Analytics
-analytics = CryptoDataAnalytics(btc_data)
+def run_data_analytics(run: bool):
+    if not run:
+        return None, None, None, None, None
+
+    analytics = CryptoDataAnalytics(btc_data)
 
     # Retrieve and display all-time records
-all_time_high, all_time_low, all_time_high_date, all_time_low_date = analytics.retrieve_all_time_records()
-print(f"All Time High: {all_time_high} on {all_time_high_date}"), print(f"All Time Low: {all_time_low} on {all_time_low_date}")
+    all_time_high, all_time_low, all_time_high_date, all_time_low_date = analytics.retrieve_all_time_records()
+    print(f"All Time High: {all_time_high} on {all_time_high_date}")
+    print(f"All Time Low: {all_time_low} on {all_time_low_date}")
 
     # Run all analyses and save them
-analytics.perform_and_save_all_analyses()
-yearly_data = analytics.perform_time_analysis('Y')
-monthly_data = analytics.perform_time_analysis('M')
-weekly_data = analytics.perform_time_analysis('W')
-displayhook(yearly_data), displayhook(monthly_data), displayhook(weekly_data)
+    analytics.perform_and_save_all_analyses()
+    yearly_data = analytics.perform_time_analysis('Y')
+    monthly_data = analytics.perform_time_analysis('M')
+    weekly_data = analytics.perform_time_analysis('W')
+
+    return analytics, all_time_high, all_time_low, yearly_data, monthly_data, weekly_data
+
+#analytics, all_time_high, all_time_low, yearly_data, monthly_data, weekly_data = run_data_analytics(True)

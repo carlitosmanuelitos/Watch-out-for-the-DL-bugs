@@ -10,6 +10,8 @@ from bokeh.layouts import column, row
 from bokeh.io import curdoc, export_png
 from bokeh.models.widgets import CheckboxGroup
 from bokeh.themes import Theme
+from data_fetcher import btc_data
+
 
 # Other settings
 from IPython.display import display, HTML
@@ -319,20 +321,28 @@ class CryptoAnalyticsVisual:
         return df
 
 
-from data_fetcher import btc_data
-crypto_analytics = CryptoAnalyticsVisual(btc_data)
-candle = crypto_analytics.create_candlestick_chart(time_period='last_6_months', ma_period=20)
-trend = crypto_analytics.plot_trend_bokeh()
-bollinger_bands = crypto_analytics.plot_bollinger_bands_bokeh()
-macd = crypto_analytics.plot_macd_bokeh()
-rsi = crypto_analytics.plot_rsi_bokeh()
-fibonacci_retracement = crypto_analytics.plot_fibonacci_retracement_bokeh()
-volume = crypto_analytics.plot_volume_analysis_bokeh()
+def run_data_visuals(run: bool):
+    if not run:
+        return None
 
-crypto_analytics.save_plot_to_file(candle, 'candle.html')
-crypto_analytics.save_plot_to_file(trend, 'trend.html')
-crypto_analytics.save_plot_to_file(bollinger_bands, 'bollinger_bands.html')
-crypto_analytics.save_plot_to_file(macd, 'macd.html')
-crypto_analytics.save_plot_to_file(rsi, 'rsi.html')
-crypto_analytics.save_plot_to_file(fibonacci_retracement, 'fibonacci_retracement.html')
-crypto_analytics.save_plot_to_file(volume, 'rsi.html')
+    crypto_analytics = CryptoAnalyticsVisual(btc_data)
+
+    candle = crypto_analytics.create_candlestick_chart(time_period='last_6_months', ma_period=20)
+    trend = crypto_analytics.plot_trend_bokeh()
+    bollinger_bands = crypto_analytics.plot_bollinger_bands_bokeh()
+    macd = crypto_analytics.plot_macd_bokeh()
+    rsi = crypto_analytics.plot_rsi_bokeh()
+    fibonacci_retracement = crypto_analytics.plot_fibonacci_retracement_bokeh()
+    volume = crypto_analytics.plot_volume_analysis_bokeh()
+
+    crypto_analytics.save_plot_to_file(candle, 'candle.html')
+    crypto_analytics.save_plot_to_file(trend, 'trend.html')
+    crypto_analytics.save_plot_to_file(bollinger_bands, 'bollinger_bands.html')
+    crypto_analytics.save_plot_to_file(macd, 'macd.html')
+    crypto_analytics.save_plot_to_file(rsi, 'rsi.html')
+    crypto_analytics.save_plot_to_file(fibonacci_retracement, 'fibonacci_retracement.html')
+    crypto_analytics.save_plot_to_file(volume, 'volume.html')
+
+    return crypto_analytics, candle, trend, bollinger_bands, macd, rsi, fibonacci_retracement, volume
+
+#crypto_analytics, candle, trend, bollinger_bands, macd, rsi, fibonacci_retracement, volume = run_data_visuals(True)

@@ -580,7 +580,7 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['Enhanced_Linear_Regression', 'Enhanced_XGBoost'])
+#run_models(models, data_preprocessor, run_only=['Enhanced_Linear_Regression', 'Enhanced_XGBoost'])
 
 # Skip specific models
-run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])
+#run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])
