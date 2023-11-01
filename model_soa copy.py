@@ -489,9 +489,6 @@ class SOA_NBEATS(BaseModel_DL_SOA):
     def save(self, path):
         self.model.save(path)
 
-
-
-
 def wavenet_block(filters, kernel_size, dilation_rate):
     def f(input_):
         tanh_out = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal', activation='tanh')(input_)
@@ -568,7 +565,6 @@ class SOA_WAVENET(BaseModel_DL_SOA):
         logger.info("Training completed.")
     def save(self, path):
         self.model.save(path)
-
 
 class SOA_LSTNET(BaseModel_DL_SOA):
     def __init__(self, model_type, data_preprocessor, config):
@@ -901,10 +897,10 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 
 
 # Run all models
-run_models(models, data_preprocessor)
+#(models, data_preprocessor)
 
 # Run only specific models
-#run_models(models, data_preprocessor, run_only=['NBEATS'])
+run_models(models, data_preprocessor, run_only=['WAVENET','LSTNET','TRANSFORMER'])
 
 # Skip specific models
 #run_models(models, data_preprocessor, skip=['NBEATS'])
