@@ -148,8 +148,6 @@ class BaseModelLSTM():
         self._make_raw_predictions()
         self._make_unscaled_predictions()
         self._create_comparison_dfs()
-        model_id = self.generate_model_id()
-        self.save_predictions(model_id)
 
         logging.info("Predictions made")
 
@@ -226,8 +224,6 @@ class BaseModelLSTM():
 
             self.evaluation_df = pd.DataFrame(evaluation)
             logging.info("Evaluation completed")
-            model_id = self.generate_model_id()
-            self.save_accuracy(model_id)
             return self.evaluation_df
    
     def plot_history(self, plot=True):
@@ -319,28 +315,30 @@ class BaseModelLSTM():
         output_notebook()
         show(row(p2, p3), notebook_handle=True)
     
-    @staticmethod
-    def update_config_hash_mapping(config_hash, config, folder_name="models_assets"):
+    def update_config_mapping(self, folder_name="models_assets"):
         """
-        Update the configuration hash mapping.
+        Update the configuration mapping with model_id.
         
         Parameters:
-            config_hash (str): The MD5 hash of the configuration.
-            config (dict): The configuration dictionary.
             folder_name (str): The name of the folder where models are saved.
         """
-        mapping_file_path = os.path.join(folder_name, 'config_hash_mapping.json')
+        mapping_file_path = os.path.join(folder_name, 'config_mapping.json')
         if os.path.exists(mapping_file_path):
             with open(mapping_file_path, 'r') as f:
                 existing_mappings = json.load(f)
         else:
             existing_mappings = {}
 
-        existing_mappings[config_hash] = config
+        model_id = self.generate_model_id()
+        existing_mappings[model_id] = {
+            'Model Class': self.__class__.__name__,
+            'Config': self.config
+        }
 
         # Save updated mappings
         with open(mapping_file_path, 'w') as f:
             json.dump(existing_mappings, f, indent=4)
+        self.logger.info(f"Configuration mapping updated in {folder_name}")
 
     def save_model_to_folder(self, version, folder_name="models_assets"):
         """
@@ -350,35 +348,36 @@ class BaseModelLSTM():
             version (str): The version of the model.
             folder_name (str): The name of the folder where models are saved.
         """
-        model_name = self.__class__.__name__  # Remove 'Enhanced_' from the class name if needed
-        config_str = json.dumps(self.config, sort_keys=True)
-        config_hash = hashlib.md5(config_str.encode()).hexdigest()[:6]
-
         if not os.path.exists(folder_name):
             os.makedirs(folder_name)
 
-        self.update_config_hash_mapping(config_hash, self.config, folder_name)
+        # Update the config mapping
+        self.update_config_mapping(folder_name)
 
         # Save the model
+        model_id = self.generate_model_id()
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{model_name}_V{version}_{config_hash}_{timestamp}.h5"
+        filename = f"{self.__class__.__name__}_V{version}_{model_id}.h5"
         full_path = os.path.join(folder_name, filename)
         self.model.save(full_path)
-        print(f"Model saved to {full_path}")
+        self.logger.info(f"Model saved to {full_path}")
 
     def generate_model_id(self):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         config_str = json.dumps(self.config, sort_keys=True)
         config_hash = hashlib.md5(config_str.encode()).hexdigest()[:6]
-        model_id = f"{self.model_type}_{config_hash}_{timestamp}"
+        model_id = f"{self.model_type}_{config_hash}"
+        self.logger.info(f"Generated model ID: {model_id}")
         return model_id
 
-    def save_predictions(self, model_id):
+    def save_predictions(self, model_id, subfolder=None, overwrite=False):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         folder = 'model_predictions'
+        if subfolder:
+            folder = os.path.join(folder, subfolder)
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filepath = os.path.join(folder, f"{model_id}_predictions.csv")
+        filepath = os.path.join(folder, 'all_model_predictions.csv')
         
         df = self.test_comparison_df.reset_index()
         df['Model Class'] = self.__class__.__name__
@@ -386,16 +385,23 @@ class BaseModelLSTM():
         df['Config'] = json.dumps(self.config)
         df['Date Run'] = timestamp
         
-        write_header = not os.path.exists(filepath)
-        with open(filepath, 'a') as f:
-            df.to_csv(f, header=write_header, index=False)
+        # Reorder the columns
+        df = df[['Date Run', 'Model Class', 'Model ID', 'Config', 'Date', 'Actual', 'Predicted']]
+        
+        if overwrite or not os.path.exists(filepath):
+            df.to_csv(filepath, index=False)
+        else:
+            df.to_csv(filepath, mode='a', header=False, index=False)
+        self.logger.info(f"Predictions saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Predictions appended to {filepath}")
 
-    def save_accuracy(self, model_id):
+    def save_accuracy(self, model_id, subfolder=None, overwrite=False):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         folder = 'model_accuracy'
+        if subfolder:
+            folder = os.path.join(folder, subfolder)
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filepath = os.path.join(folder, f"{model_id}_accuracy.csv")
+        filepath = os.path.join(folder, 'all_model_accuracy.csv')
         
         df = self.evaluation_df.reset_index()
         df['Model Class'] = self.__class__.__name__
@@ -403,9 +409,14 @@ class BaseModelLSTM():
         df['Config'] = json.dumps(self.config)
         df['Date Run'] = timestamp
         
-        write_header = not os.path.exists(filepath)
-        with open(filepath, 'a') as f:
-            df.to_csv(f, header=write_header, index=False)
+        # Reorder the columns
+        df = df[['Date Run', 'Model Class', 'Model ID', 'Config', 'index', 'RMSE', 'R2 Score', 'MAE', 'Explained Variance']]
+        
+        if overwrite or not os.path.exists(filepath):
+            df.to_csv(filepath, index=False)
+        else:
+            df.to_csv(filepath, mode='a', header=False, index=False)
+        self.logger.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
 
 
 class LSTMModel(BaseModelLSTM):
@@ -425,6 +436,197 @@ class LSTMModel(BaseModelLSTM):
             self.model.add(Dropout(self.config['dropout']))
         for units in self.config['dense_units']:
             self.model.add(Dense(units))
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class GRUModel(BaseModelLSTM):
+    def _initialize_model(self):
+        self.model = Sequential()
+        for i in range(self.config['num_gru_layers']):
+            units = self.config['gru_units'][i]
+            return_sequences = True if i < self.config['num_gru_layers'] - 1 else False
+            self.model.add(GRU(units, return_sequences=return_sequences))
+            self.model.add(Dropout(self.config['dropout']))
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class BiLSTMModel(BaseModelLSTM):
+    def _initialize_model(self):
+        self.model = Sequential()
+        for i in range(self.config['num_lstm_layers']):
+            units = self.config['lstm_units'][i]
+            return_sequences = True if i < self.config['num_lstm_layers'] - 1 else False
+            self.model.add(Bidirectional(LSTM(units, return_sequences=return_sequences)))
+            self.model.add(Dropout(self.config['dropout']))
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class StackedRNNModel(BaseModelLSTM):
+    def _initialize_model(self):
+        additional_params = {
+            'input_shape': self.config['input_shape'],
+            'lstm_units': self.config.get('lstm_units', []),
+            'gru_units': self.config.get('gru_units', [])
+        }
+        self.params.update(additional_params)
+        
+        input_layer = Input(shape=self.config['input_shape'])
+        x = input_layer
+
+        # Adding LSTM layers
+        for i, units in enumerate(self.config['lstm_units']):
+            return_sequences = True if i < len(self.config['lstm_units']) - 1 or self.config['gru_units'] else False
+            x = LSTM(units, return_sequences=return_sequences)(x)
+            x = Dropout(self.config['dropout'])(x)
+
+        # Adding GRU layers
+        for i, units in enumerate(self.config['gru_units']):
+            return_sequences = True if i < len(self.config['gru_units']) - 1 else False
+            x = GRU(units, return_sequences=return_sequences)(x)
+            x = Dropout(self.config['dropout'])(x)
+
+        # Adding Dense layers
+        for units in self.config['dense_units']:
+            x = Dense(units)(x)
+        
+        self.model = Model(inputs=input_layer, outputs=x)
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class AttentionLSTMModel(BaseModelLSTM):
+    """
+    This class is an implementation of a LSTM model with Attention for sequence prediction.
+    It inherits from the BaseModelLSTM class and overrides the _initialize_model method.
+    """
+    def _initialize_model(self):
+        additional_params = {
+            'input_shape': self.config['input_shape'],
+            'num_lstm_layers': self.config['num_lstm_layers'],
+            'lstm_units': self.config['lstm_units']
+        }
+        self.params.update(additional_params)
+        input_layer = Input(shape=self.config['input_shape'])
+        x = input_layer
+
+        # Add LSTM layers
+        for i in range(self.config['num_lstm_layers']):
+            units = self.config['lstm_units'][i]
+            return_sequences = True  # For Attention, the last LSTM layer should also return sequences
+            x = LSTM(units, return_sequences=return_sequences)(x)
+            x = Dropout(self.config['dropout'])(x)
+
+        x = Attention(use_scale=True)([x, x])  # Self-attention
+        x = GlobalAveragePooling1D()(x)
+        for units in self.config['dense_units']:
+            x = Dense(units)(x)
+        
+        self.model = Model(inputs=input_layer, outputs=x)
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+    
+class SimpleRNNModel(BaseModelLSTM):
+        def _initialize_model(self):
+            self.model = Sequential()
+            additional_params = {
+                'input_shape': self.config['input_shape'],
+                'num_rnn_layers': self.config['num_rnn_layers'],
+                'rnn_units': self.config['rnn_units']
+            }
+            self.params.update(additional_params)
+
+            for i in range(self.config['num_rnn_layers']):
+                units = self.config['rnn_units'][i]
+                return_sequences = True if i < self.config['num_rnn_layers'] - 1 else False
+                self.model.add(SimpleRNN(units, return_sequences=return_sequences))
+                self.model.add(Dropout(self.config['dropout']))
+
+            for units in self.config['dense_units']:
+                self.model.add(Dense(units))
+
+            self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class SimpleRNNModel(BaseModelLSTM):
+    """
+    This class is an implementation of a Simple RNN model for sequence prediction.
+    It inherits from the BaseModelLSTM class and overrides the _initialize_model method.
+    """
+    def _initialize_model(self):
+        self.model = Sequential()
+        additional_params = {
+            'input_shape': self.config['input_shape'],
+            'num_rnn_layers': self.config['num_rnn_layers'],
+            'rnn_units': self.config['rnn_units']
+        }
+        self.params.update(additional_params)
+
+        for i in range(self.config['num_rnn_layers']):
+            units = self.config['rnn_units'][i]
+            # Make sure to set return_sequences=False for the last layer
+            return_sequences = True if i < self.config['num_rnn_layers'] - 1 else False
+            self.model.add(SimpleRNN(units, return_sequences=return_sequences))
+            self.model.add(Dropout(self.config['dropout']))
+
+        # Add Dense layers
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+
+        # Compile the model
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class BiGRUModel(BaseModelLSTM):
+    """
+    This class is an implementation of a bi-directional GRU model for sequence prediction.
+    It inherits from the BaseModelLSTM class and overrides the _initialize_model method.
+    """
+    def _initialize_model(self):
+        self.model = Sequential()
+        additional_params = {
+            'input_shape': self.config['input_shape'],
+            'num_gru_layers': self.config['num_gru_layers'],
+            'gru_units': self.config['gru_units']
+        }
+        self.params.update(additional_params)
+
+        for i in range(self.config['num_gru_layers']):
+            units = self.config['gru_units'][i]
+            return_sequences = True if i < self.config['num_gru_layers'] - 1 else False
+            self.model.add(Bidirectional(GRU(units, return_sequences=return_sequences)))
+            self.model.add(Dropout(self.config['dropout']))
+
+        # If the last RNN layer returns sequences, you may need to flatten it
+        if return_sequences:
+            self.model.add(Flatten())
+        
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class CNNLSTMModel(BaseModelLSTM):
+    def _initialize_model(self):
+        self.model = Sequential()
+        # Conv1D layers
+        for i in range(self.config['num_conv_layers']):
+            filters = self.config['conv_filters'][i]
+            kernel_size = self.config['conv_kernel_size'][i]
+            if i == 0:
+                self.model.add(Conv1D(filters=filters, kernel_size=kernel_size, activation='relu', input_shape=self.config['input_shape']))
+            else:
+                self.model.add(Conv1D(filters=filters, kernel_size=kernel_size, activation='relu'))
+            self.model.add(MaxPooling1D(pool_size=2))
+        
+        self.model.add(GlobalMaxPooling1D())
+        self.model.add(Reshape((1, self.config['conv_filters'][-1])))    
+        # LSTM layers
+        for i in range(self.config['num_lstm_layers']):
+            units = self.config['lstm_units'][i]
+            return_sequences = True if i < self.config['num_lstm_layers'] - 1 else False
+            self.model.add(LSTM(units, return_sequences=return_sequences))
+            self.model.add(Dropout(self.config['dropout']))
+        
+        # Dense layers
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+    
         self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 
 
@@ -496,11 +698,18 @@ def run_models(models, run_only=None, skip=None):
         model.train_model(epochs=100, batch_size=32)
         model.make_predictions()
         evaluation_df = model.evaluate_model()
+
+        # Generate a unique model_id for this run
+        model_id = model.generate_model_id()
+        model.save_predictions(model_id, subfolder='model_deep_learning', overwrite=False)
+        model.save_accuracy(model_id, subfolder='model_deep_learning', overwrite=False)
+
         display(evaluation_df)
         print(f"{name} Model Evaluation:\n", evaluation_df)
         model.plot_history()
         model.plot_predictions()
         model.save_model_to_folder(version="2")
+
 
 
 

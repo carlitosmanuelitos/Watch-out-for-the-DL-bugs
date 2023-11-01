@@ -1,0 +1,53 @@
+{
+    "TCN_1443ed": {
+        "Model Class": "SOA_TCN",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "sequence_length": 10,
+            "num_features": 5,
+            "nb_filters": 64,
+            "kernel_size": 2,
+            "nb_stacks": 1,
+            "dilations": [
+                1,
+                2,
+                4,
+                8,
+                16,
+                32
+            ],
+            "padding": "causal",
+            "use_skip_connections": true,
+            "dropout_rate": 0.2,
+            "return_sequences": false,
+            "activation": "relu",
+            "kernel_initializer": "he_normal",
+            "use_batch_norm": false,
+            "optimizer": "adam"
+        }
+    },
+    "NBEATS_0273da": {
+        "Model Class": "SOA_NBEATS",
+        "Config": {
+            "lookback": 1,
+            "horizon": 1,
+            "num_generic_neurons": 512,
+            "num_generic_stacks": 30,
+            "num_generic_layers": 4,
+            "num_trend_neurons": 256,
+            "num_trend_stacks": 3,
+            "num_trend_layers": 4,
+            "num_seasonal_neurons": 2048,
+            "num_seasonal_stacks": 3,
+            "num_seasonal_layers": 4,
+            "num_harmonics": 1,
+            "polynomial_term": 3,
+            "loss": "mae",
+            "learning_rate": 0.001,
+            "batch_size": 1024
+        }
+    }
+}
