@@ -170,5 +170,140 @@
             1
         ],
         "optimizer": "adam"
+    },
+    "1443ed": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "sequence_length": 10,
+        "num_features": 5,
+        "nb_filters": 64,
+        "kernel_size": 2,
+        "nb_stacks": 1,
+        "dilations": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32
+        ],
+        "padding": "causal",
+        "use_skip_connections": true,
+        "dropout_rate": 0.2,
+        "return_sequences": false,
+        "activation": "relu",
+        "kernel_initializer": "he_normal",
+        "use_batch_norm": false,
+        "optimizer": "adam"
+    },
+    "0273da": {
+        "lookback": 1,
+        "horizon": 1,
+        "num_generic_neurons": 512,
+        "num_generic_stacks": 30,
+        "num_generic_layers": 4,
+        "num_trend_neurons": 256,
+        "num_trend_stacks": 3,
+        "num_trend_layers": 4,
+        "num_seasonal_neurons": 2048,
+        "num_seasonal_stacks": 3,
+        "num_seasonal_layers": 4,
+        "num_harmonics": 1,
+        "polynomial_term": 3,
+        "loss": "mae",
+        "learning_rate": 0.001,
+        "batch_size": 1024
+    },
+    "9b1c88": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "sequence_length": 10,
+        "num_features": 5,
+        "num_blocks": 4,
+        "filters": 32,
+        "kernel_size": 2,
+        "optimizer": "adam",
+        "loss": "mae"
+    },
+    "4e1e83": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "sequence_length": 10,
+        "num_features": 5,
+        "cnn_filters": 64,
+        "gru_units": 64,
+        "kernel_size": 3,
+        "optimizer": "adam",
+        "loss": "mae"
+    },
+    "6873b5": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "sequence_length": 10,
+        "num_features": 5,
+        "num_layers": 2,
+        "embed_size": 64,
+        "heads": 4,
+        "dropout": 0.2,
+        "forward_expansion": 2,
+        "optimizer": "adam",
+        "loss": "mae"
+    },
+    "4adf41": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "num_lstm_layers": 1,
+        "lstm_units": [
+            64
+        ],
+        "dropout": 0.0,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
+    },
+    "0200fb": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "num_lstm_layers": 3,
+        "lstm_units": [
+            64,
+            32,
+            16
+        ],
+        "dropout": 0.3,
+        "dense_units": [
+            1
+        ],
+        "optimizer": "adam"
+    },
+    "743895": {
+        "input_shape": [
+            10,
+            5
+        ],
+        "num_lstm_layers": 2,
+        "lstm_units": [
+            50,
+            30
+        ],
+        "dropout": 0.2,
+        "dense_units": [
+            16,
+            1
+        ],
+        "optimizer": "adam"
     }
 }
