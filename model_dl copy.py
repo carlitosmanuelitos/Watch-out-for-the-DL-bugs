@@ -714,10 +714,10 @@ def run_models(models, run_only=None, skip=None):
 
 
 # Run all models
-run_models(models)
+#run_models(models)
 
 # Run only specific models
-#run_models(models, run_only=['StackedRNN','AttentionLSTM','CNNLSTM'])
+run_models(models, run_only=['LSTM_Original'])
 
 # Skip specific models
 #run_models(models, skip=['SimpleRNN'])

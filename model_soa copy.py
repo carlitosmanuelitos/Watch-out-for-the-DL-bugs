@@ -316,8 +316,21 @@ class BaseModel_DL_SOA():
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"{self.__class__.__name__}_V{version}_{model_id}.h5"
         full_path = os.path.join(folder_name, filename)
-        self.model.save(full_path)
+        self.save(full_path)
         self.logger.info(f"Model saved to {full_path}")
+
+    def save(self, path):
+        try:
+            # Try saving normally for Keras models
+            save_model(self.model, path)
+            logger.info(f"Model saved to {path}")
+        except AttributeError:
+            try:
+                # Special case for N-BEATS
+                save_model(self.model.model, path)
+                logger.info(f"Internal Keras model saved to {path}")
+            except Exception as e:
+                logger.error(f"Failed to save the model. Error: {e}")
 
     def generate_model_id(self):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -897,10 +910,10 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 
 
 # Run all models
-#(models, data_preprocessor)
+#run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['WAVENET','LSTNET','TRANSFORMER'])
+run_models(models, data_preprocessor, run_only=['NBEATS'])
 
 # Skip specific models
 #run_models(models, data_preprocessor, skip=['NBEATS'])
