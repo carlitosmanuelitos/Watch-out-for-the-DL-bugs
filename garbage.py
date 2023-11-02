@@ -59,8 +59,6 @@ class BaseModel_ML:
         self.target_scaler = data_preprocessor.scalers['target']
         self.data = data_preprocessor.data
         self.config = config
-        self.train_predictions = None
-        self.test_predictions = None
         self.plot = plot
         self.logger = logging.getLogger(__name__)    
     
@@ -69,93 +67,39 @@ class BaseModel_ML:
         for arr, name in [(X_train, 'X_train'), (y_train, 'y_train'), (X_test, 'X_test'), (y_test, 'y_test')]:
             if not isinstance(arr, np.ndarray) or len(arr.shape) != 2:
                 raise ValueError(f"{name} should be a 2D numpy array.")
-
-    def train_model(self):
-        """Train the model."""
-        try:
-            self.model.fit(self.X_train, self.y_train.ravel())
-            self.logger.info(f"{self.__class__.__name__} model trained successfully.")
-        except Exception as e:
-            self.logger.error(f"Error occurred while training the model: {str(e)}")
                 
-    def make_predictions(self):
-        """Make predictions using the trained model."""
+    def inverse_scale_predictions(self):
+        """ Inverse and unscale the predicstion back to their original shape"""
         try:
-            self._make_raw_predictions()
-            self.logger.info("Step 1: Raw predictions made.")
-            
-            self._make_unscaled_predictions()
-            self.logger.info("Step 2: Unscaled predictions made.")
-            
-            self._create_comparison_dfs()
-            self.logger.info("Step 3: Comparison dataframes created.")
-            
-            self.logger.info("Predictions made successfully.")
+            self.train_predictions = self.target_scaler.inverse_transform(self.train_predictions.reshape(-1, 1)).flatten()
+            self.test_predictions = self.target_scaler.inverse_transform(self.test_predictions.reshape(-1, 1)).flatten()
+            self.logger.info("Predictions inverse transformed to original scale")
         except Exception as e:
-            self.logger.error(f"Error occurred while making predictions: {str(e)}")
-               
-    def _make_raw_predictions(self):
-        self.logger.debug(f"Sample raw train predictions: {self.train_predictions[:5]}")
-        self.logger.debug(f"Sample raw test predictions: {self.test_predictions[:5]}")
-
-        self.train_predictions = self.model.predict(self.X_train)
-        self.test_predictions = self.model.predict(self.X_test)
-        self.logger.info(f"Raw predictions made with shapes train: {self.train_predictions.shape}, test: {self.test_predictions.shape}")
-
-    def _make_unscaled_predictions(self):
-        # Perform the inverse transformation to get unscaled values
-        self.logger.debug(f"Sample unscaled train predictions: {self.train_predictions[:5]}")
-        self.logger.debug(f"Sample unscaled test predictions: {self.test_predictions[:5]}")
-
-        self.train_predictions = self.target_scaler.inverse_transform(self.train_predictions.reshape(-1, 1)).flatten()
-        self.test_predictions = self.target_scaler.inverse_transform(self.test_predictions.reshape(-1, 1)).flatten()
-        self.logger.info(f"Unscaled predictions made with shapes train: {self.train_predictions.shape}, test: {self.test_predictions.shape}")
-
-    def _create_comparison_dfs(self):
-        # Log the attributes of the object to see what's available
-        self.logger.debug(f"Object attributes: {dir(self)}")
-
-        # Log the first few training and test values
-        self.logger.debug(f"Sample actual train values: {self.y_train.flatten()[:5]}")
-        self.logger.debug(f"Sample actual test values: {self.y_test.flatten()[:5]}")
-
-        # Log sample train and test date indices
-        self.logger.debug(f"Sample train date indices: {self.data.index[:5]}")
-        self.logger.debug(f"Sample test date indices: {self.data.index[-5:]}")
-
-        # Log the shape of y_train and y_test to ensure they are what you expect
-        self.logger.debug(f"Shape of y_train: {self.y_train.shape}")
-        self.logger.debug(f"Shape of y_test: {self.y_test.shape}")
-
-        # Log the shape of train_predictions and test_predictions
-        self.logger.debug(f"Shape of train_predictions: {self.train_predictions.shape}")
-        self.logger.debug(f"Shape of test_predictions: {self.test_predictions.shape}")
-
+            self.logger.error(f"Error occurred while inverse transforming predictions: {str(e)}")
+            
+    def compare_predictions(self):
+        """Create dataframes comparing the original and predicted values for both training and test sets."""
         try:
-            # Obtain date indices from original data
+            train_indices = self.data['Close'].iloc[:len(self.y_train)].values
+            test_indices = self.data['Close'].iloc[-len(self.y_test):].values
+
+            train_comparison_df = pd.DataFrame({'Original': train_indices, 'Predicted': self.train_predictions.ravel()})
+            test_comparison_df = pd.DataFrame({'Original': test_indices, 'Predicted': self.test_predictions.ravel()})
+
             train_date_index = self.data.index[:len(self.y_train)]
             test_date_index = self.data.index[-len(self.y_test):]
 
-            self.train_comparison_df = pd.DataFrame({'Actual': self.y_train.flatten(), 'Predicted': self.train_predictions})
-            self.train_comparison_df.set_index(train_date_index, inplace=True)
-
-            self.test_comparison_df = pd.DataFrame({'Actual': self.y_test.flatten(), 'Predicted': self.test_predictions})
-            self.test_comparison_df.set_index(test_date_index, inplace=True)
-
-            # Log a sample of the generated dataframes
-            self.logger.debug(f"Sample rows from train_comparison_df: {self.train_comparison_df.head()}")
-            self.logger.debug(f"Sample rows from test_comparison_df: {self.test_comparison_df.head()}")
-
+            train_comparison_df.set_index(train_date_index, inplace=True)
+            test_comparison_df.set_index(test_date_index, inplace=True)
             self.logger.info("Comparison dataframes generated")
+            return train_comparison_df, test_comparison_df
         except Exception as e:
-            self.logger.error(f"Error occurred while generating comparison dataframes: {str(e)}")
-
+            self.logger.error(f"Error occurred while creating comparison dataframes: {str(e)}")
 
     def evaluate_model(self):
         """Evaluate the model using various metrics for both training and test sets."""
-        self.logger.debug(f"Sample rows from train_comparison_df: {self.train_comparison_df.head()}")
-        self.logger.debug(f"Sample rows from test_comparison_df: {self.test_comparison_df.head()}")
         try:
+            train_comparison_df, test_comparison_df = self.compare_predictions()
             metrics = {
                 'RMSE': lambda y_true, y_pred: np.sqrt(mean_squared_error(y_true, y_pred)),
                 'R2 Score': r2_score,
@@ -164,72 +108,14 @@ class BaseModel_ML:
             }
 
             results = []
-            for dataset, comparison_df in [('Train', self.train_comparison_df), ('Test', self.test_comparison_df)]:
-                dataset_results = {metric_name: metric_func(comparison_df['Actual'], comparison_df['Predicted']) for metric_name, metric_func in metrics.items()}
+            for dataset, comparison_df in [('Train', train_comparison_df), ('Test', test_comparison_df)]:
+                dataset_results = {metric_name: metric_func(comparison_df['Original'], comparison_df['Predicted']) for metric_name, metric_func in metrics.items()}
                 results.append(dataset_results)
 
             results_df = pd.DataFrame(results, index=['Train', 'Test'])
             return results_df
         except Exception as e:
             self.logger.error(f"Error occurred while evaluating the model: {str(e)}")
-
-    def plot_predictions(self, plot=True):
-        if not plot:
-            return        
-        if not hasattr(self, 'train_comparison_df') or not hasattr(self, 'test_comparison_df'):
-            print("No predictions are available. Generate predictions first.")
-            return
-        actual_train = self.train_comparison_df['Actual']
-        predicted_train = self.train_comparison_df['Predicted']
-        actual_test = self.test_comparison_df['Actual']
-        predicted_test = self.test_comparison_df['Predicted']
-        index_train = self.train_comparison_df.index
-        index_test = self.test_comparison_df.index
-
-        # Preparing data
-        source_train = ColumnDataSource(data=dict(
-            index=index_train,
-            actual_train=actual_train,
-            predicted_train=predicted_train
-        ))
-
-        source_test = ColumnDataSource(data=dict(
-            index=index_test,
-            actual_test=actual_test,
-            predicted_test=predicted_test
-        ))
-
-        p2 = figure(width=700, height=600, title="Training Data: Actual vs Predicted", x_axis_label='Date', y_axis_label='Value', x_axis_type="datetime")
-        p3 = figure(width=700, height=600, title="Testing Data: Actual vs Predicted",x_axis_label='Date', y_axis_label='Value', x_axis_type="datetime")
-        p2.line(x='index', y='actual_train', legend_label="Actual", line_width=2, source=source_train, color="green")
-        p2.line(x='index', y='predicted_train', legend_label="Predicted", line_width=2, source=source_train, color="red")
-        p3.line(x='index', y='actual_test', legend_label="Actual", line_width=2, source=source_test, color="green")
-        p3.line(x='index', y='predicted_test', legend_label="Predicted", line_width=2, source=source_test, color="red")
-        p2.legend.location = "top_left" 
-        p2.legend.click_policy = "hide"
-        p3.legend.location = "top_left" 
-        p3.legend.click_policy = "hide"
-        hover_train = HoverTool()
-        hover_train.tooltips = [
-            ("Date", "@index{%F}"),
-            ("Actual Value", "@{actual_train}{0,0.0000}"),
-            ("Predicted Value", "@{predicted_train}{0,0.0000}")
-        ]
-        hover_train.formatters = {"@index": "datetime"}
-
-        hover_test = HoverTool()
-        hover_test.tooltips = [
-            ("Date", "@index{%F}"),
-            ("Actual Value", "@{actual_test}{0,0.0000}"),
-            ("Predicted Value", "@{predicted_test}{0,0.0000}")
-        ]
-        hover_test.formatters = {"@index": "datetime"}
-
-        p2.add_tools(hover_train)
-        p3.add_tools(hover_test)
-        output_notebook()
-        show(row(p2, p3), notebook_handle=True)
-    
         
     @staticmethod
     def update_config_hash_mapping(config_hash, config, folder_name="models_assets"):
@@ -263,6 +149,58 @@ class BaseModel_ML:
         dump(self.model, full_path)
         self.logger.info(f"Model saved to {full_path}")
         
+    def plot_predictions(self):
+        """Plot the original vs predicted values for both training and testing data."""
+        if not self.plot:
+            return
+
+        train_comparison_df, test_comparison_df = self.compare_predictions()
+        train_comparison_df.index = pd.to_datetime(train_comparison_df.index)
+        test_comparison_df.index = pd.to_datetime(test_comparison_df.index)
+
+        source_train = ColumnDataSource(data=dict(
+            date=train_comparison_df.index,
+            original=train_comparison_df['Original'],
+            predicted=train_comparison_df['Predicted']
+        ))
+
+        source_test = ColumnDataSource(data=dict(
+            date=test_comparison_df.index,
+            original=test_comparison_df['Original'],
+            predicted=test_comparison_df['Predicted']
+        ))
+
+        p1 = figure(width=700, height=600, x_axis_type="datetime", title="Training Data: Actual vs Predicted")
+        p1.line('date', 'original', legend_label="Actual", line_alpha=0.6, source=source_train)
+        p1.line('date', 'predicted', legend_label="Predicted", line_color="red", line_dash="dashed", source=source_train)
+        p1.legend.location = "top_left"
+
+        p2 = figure(width=700, height=600, x_axis_type="datetime", title="Testing Data: Actual vs Predicted")
+        p2.line('date', 'original', legend_label="Actual", line_alpha=0.6, source=source_test)
+        p2.line('date', 'predicted', legend_label="Predicted", line_color="red", line_dash="dashed", source=source_test)
+        p2.legend.location = "top_left"
+
+        hover1 = HoverTool()
+        hover1.tooltips = [
+            ("Date", "@date{%F}"),
+            ("Actual Value", "@original{0,0.0000}"),
+            ("Predicted Value", "@predicted{0,0.0000}")
+        ]
+        hover1.formatters = {"@date": "datetime"}
+        p1.add_tools(hover1)
+
+        hover2 = HoverTool()
+        hover2.tooltips = [
+            ("Date", "@date{%F}"),
+            ("Actual Value", "@original{0,0.0000}"),
+            ("Predicted Value", "@predicted{0,0.0000}")
+        ]
+        hover2.formatters = {"@date": "datetime"}
+        p2.add_tools(hover2)
+
+        # Show plots
+        show(row(p1, p2))
+
 
 
 class Enhanced_Linear_Regression(BaseModel_ML):
@@ -286,6 +224,23 @@ class Enhanced_Linear_Regression(BaseModel_ML):
             self.model = LinearRegression()
             self.logger.info("Plain Linear Regression model initialized.")
 
+    def train_model(self):
+        """Train the Linear Regression model."""
+        try:
+            self.model.fit(self.X_train, self.y_train)
+            self.logger.info("Linear Regression model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
 class Enhanced_XGBoost(BaseModel_ML):
     def __init__(self, data_preprocessor, config, plot=True):
         super().__init__(data_preprocessor, config, plot)
@@ -296,6 +251,23 @@ class Enhanced_XGBoost(BaseModel_ML):
         self.model = xgb.XGBRegressor(**self.config)
         self.logger.info("XGBoost model initialized.")
         
+    def train_model(self):
+        """Train the XGBoost model."""
+        try:
+            self.model.fit(self.X_train, self.y_train)
+            self.logger.info("XGBoost model trained successfully")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully for both training and test data")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")        
+
 class Enhanced_LightGBM(BaseModel_ML):
     """
     Initialize the Enhanced LightGBM model.
@@ -309,6 +281,22 @@ class Enhanced_LightGBM(BaseModel_ML):
         self.model = LGBMRegressor(**self.config)
         self.logger.info("LightGBM model initialized.")
 
+    def train_model(self):
+        try:
+            self.model.fit(self.X_train, self.y_train)
+            self.logger.info("LightGBM model trained successfully")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully for both training and test data")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
 class Enhanced_SVM(BaseModel_ML):
     """
     Initialize the Enhanced SVM model.
@@ -321,6 +309,23 @@ class Enhanced_SVM(BaseModel_ML):
         """Initialize the SVM model based on the configuration."""
         self.model = SVR(**self.config)
         self.logger.info("SVM model initialized.")
+
+    def train_model(self):
+        """Train the SVM model."""
+        try:
+            self.model.fit(self.X_train, self.y_train.ravel())  # ravel() to convert y_train to 1D for SVM
+            self.logger.info("SVM model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
 class Enhanced_KNN(BaseModel_ML):
     """
@@ -336,6 +341,25 @@ class Enhanced_KNN(BaseModel_ML):
         """
         self.model = KNeighborsRegressor(**self.config)
         self.logger.info("KNN model initialized.")
+
+    def train_model(self):
+        """
+        Train the KNN model.
+        """
+        try:
+            self.model.fit(self.X_train, self.y_train.ravel())  # ravel() to convert y_train to 1D for KNN
+            self.logger.info("KNN model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
 
 class Enhanced_RandomForest(BaseModel_ML):
     """
@@ -363,7 +387,24 @@ class Enhanced_RandomForest(BaseModel_ML):
             return importance_scores
         except Exception as e:
             self.logger.error(f"Error occurred while extracting feature importance: {str(e)}")
-   
+            
+    def train_model(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            self.model.fit(self.X_train, self.y_train.ravel())  # Using ravel() to fit the expected shape
+            self.logger.info("RandomForest model trained successfully")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
 class Enhanced_SVR(BaseModel_ML):
     """
     Initialize the Enhanced SVR model.
@@ -377,6 +418,23 @@ class Enhanced_SVR(BaseModel_ML):
         self.model = SVR(**self.config)
         self.logger.info("SVR model initialized.")
         
+    def train_model(self):
+        """Train the model."""
+        try:
+            self.model.fit(self.X_train, self.y_train.ravel())  # Using ravel() to fit the expected shape for some models
+            self.logger.info(f"{self.__class__.__name__} model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
 class Enhanced_ExtraTrees(BaseModel_ML):
     """
     Initialize the Enhanced Extra Trees model.
@@ -390,6 +448,23 @@ class Enhanced_ExtraTrees(BaseModel_ML):
         self.model = ExtraTreesRegressor(**self.config)
         self.logger.info("Extra Trees model initialized.")
         
+    def train_model(self):
+        """Train the model."""
+        try:
+            self.model.fit(self.X_train, self.y_train.ravel())  # Using ravel() to fit the expected shape for some models
+            self.logger.info(f"{self.__class__.__name__} model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model."""
+        try:
+            self.train_predictions = self.model.predict(self.X_train)
+            self.test_predictions = self.model.predict(self.X_test)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
 
 
 
@@ -493,18 +568,19 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
         model = model_class(data_preprocessor, config, plot=True)
         model.train_model()
         model.make_predictions()
-        evaluation_df = model.evaluate_model()
-        display(evaluation_df)
+        model.inverse_scale_predictions()
+        train_comparison_df, test_comparison_df = model.compare_predictions()
+        evaluation_results = model.evaluate_model()
+        display(evaluation_results)
         model.plot_predictions()
-        #model.save_model_to_folder(version="final")
+        model.save_model_to_folder(version="final")
 
 
 # Run all models
-#run_models(models, data_preprocessor)
+run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['Enhanced_Linear_Regression'])
+run_models(models, data_preprocessor, run_only=['Enhanced_Linear_Regression', 'Enhanced_XGBoost'])
 
 # Skip specific models
-#run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])
-
+run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])
