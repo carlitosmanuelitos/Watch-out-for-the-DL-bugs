@@ -59,13 +59,7 @@ data_preprocessor.normalize_data(scaler_type='MinMax',plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax',plot=False)
 n_steps = 10 
 X_train_seq, y_train_seq, X_test_seq, y_test_seq = data_preprocessor.prepare_data_for_recurrent(n_steps, seq_to_seq=False)
-print((data_preprocessor.X_train_seq).shape)
-print((data_preprocessor.y_train_seq).shape)
-print((data_preprocessor.X_test_seq).shape)
-print((data_preprocessor.y_test_seq).shape)
 
-
-print(hasattr(data_preprocessor, 'X_train_seq'))
 
 
 class BaseModel_DL_SOA():
@@ -213,7 +207,7 @@ class BaseModel_DL_SOA():
         p1.legend.click_policy = "hide"
 
         output_notebook()
-        show(p1, notebook_handle=True)
+        return(show(p1, notebook_handle=True))
 
     def plot_predictions(self, plot=True):
         if not plot:
@@ -270,7 +264,7 @@ class BaseModel_DL_SOA():
         p2.add_tools(hover_train)
         p3.add_tools(hover_test)
         output_notebook()
-        show(row(p2, p3), notebook_handle=True)
+        return(show(row(p2, p3), notebook_handle=True))
     
     def update_config_mapping(self, folder_name="models_assets"):
         """
@@ -899,13 +893,13 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
         model.make_predictions()
         evaluation_df = model.evaluate_model()
         # Generate a unique model_id for this run
-        model_id = model.generate_model_id()
-        model.save_predictions(model_id, subfolder='model_state_of_art', overwrite=False)
-        model.save_accuracy(model_id, subfolder='model_state_of_art', overwrite=False)
+        #model_id = model.generate_model_id()
+        #model.save_predictions(model_id, subfolder='model_state_of_art', overwrite=False)
+        #model.save_accuracy(model_id, subfolder='model_state_of_art', overwrite=False)
         print(f"{name} Model Evaluation:\n", evaluation_df)
-        model.plot_history()
-        model.plot_predictions()
-        model.save_model_to_folder(version="2")
+        model.plot_history(plot=True)
+        model.plot_predictions(plot=False)
+        #model.save_model_to_folder(version="2")
 
 
 
@@ -913,7 +907,7 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 #run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['NBEATS'])
+run_models(models, data_preprocessor, run_only=['TCN'])
 
 # Skip specific models
 #run_models(models, data_preprocessor, skip=['NBEATS'])

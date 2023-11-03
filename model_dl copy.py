@@ -49,8 +49,8 @@ logger = logging.getLogger(__name__)
 
 
 # LSTM Sequece-to-One
-from data_preprocessor import UnifiedDataPreprocessor
 from data_fetcher import btc_data
+from data_preprocessor import UnifiedDataPreprocessor
 
 df = btc_data.copy()
 data_preprocessor = UnifiedDataPreprocessor(df, target_column='Close')
@@ -83,7 +83,7 @@ class BaseModelLSTM():
         self.params = {'model_type': model_type}
         self.params.update(config)
         self._initialize_model()
-        self.logger = logging.getLogger(__name__)
+        self.logging = logging.getLogger(__name__)
 
     def _initialize_model(self):
         logging.info(f"Initializing {self.model_type} model")
@@ -256,7 +256,7 @@ class BaseModelLSTM():
         p1.legend.click_policy = "hide"
 
         output_notebook()
-        show(p1, notebook_handle=True)
+        return(show(p1, notebook_handle=True))
 
     def plot_predictions(self, plot=True):
         if not plot:
@@ -313,7 +313,7 @@ class BaseModelLSTM():
         p2.add_tools(hover_train)
         p3.add_tools(hover_test)
         output_notebook()
-        show(row(p2, p3), notebook_handle=True)
+        return(show(row(p2, p3), notebook_handle=True))
     
     def update_config_mapping(self, folder_name="models_assets"):
         """
@@ -700,15 +700,15 @@ def run_models(models, run_only=None, skip=None):
         evaluation_df = model.evaluate_model()
 
         # Generate a unique model_id for this run
-        model_id = model.generate_model_id()
-        model.save_predictions(model_id, subfolder='model_deep_learning', overwrite=False)
-        model.save_accuracy(model_id, subfolder='model_deep_learning', overwrite=False)
+        #model_id = model.generate_model_id()
+        #model.save_predictions(model_id, subfolder='model_deep_learning', overwrite=False)
+        #model.save_accuracy(model_id, subfolder='model_deep_learning', overwrite=False)
 
         display(evaluation_df)
         print(f"{name} Model Evaluation:\n", evaluation_df)
         model.plot_history()
-        model.plot_predictions()
-        model.save_model_to_folder(version="2")
+        model.plot_predictions(plot=False)
+        #model.save_model_to_folder(version="2")
 
 
 
