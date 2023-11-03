@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import pandas as pd
 import json
+import joblib
 import pickle
 import hashlib
 from datetime import datetime, timedelta
@@ -177,7 +178,64 @@ class BaseModel_ML:
             self.evaluation_df = pd.DataFrame(evaluation)
             logging.info("Evaluation completed")
             return self.evaluation_df
+    
+    def plot_predictions(self, plot=True):
+        if not plot:
+            return        
+        if not hasattr(self, 'train_comparison_df') or not hasattr(self, 'test_comparison_df'):
+            print("No predictions are available. Generate predictions first.")
+            return
+        actual_train = self.train_comparison_df['Actual']
+        predicted_train = self.train_comparison_df['Predicted']
+        actual_test = self.test_comparison_df['Actual']
+        predicted_test = self.test_comparison_df['Predicted']
+        index_train = self.train_comparison_df.index
+        index_test = self.test_comparison_df.index
 
+        # Preparing data
+        source_train = ColumnDataSource(data=dict(
+            index=index_train,
+            actual_train=actual_train,
+            predicted_train=predicted_train
+        ))
+
+        source_test = ColumnDataSource(data=dict(
+            index=index_test,
+            actual_test=actual_test,
+            predicted_test=predicted_test
+        ))
+
+        p2 = figure(width=700, height=600, title="Training Data: Actual vs Predicted", x_axis_label='Date', y_axis_label='Value', x_axis_type="datetime")
+        p3 = figure(width=700, height=600, title="Testing Data: Actual vs Predicted",x_axis_label='Date', y_axis_label='Value', x_axis_type="datetime")
+        p2.line(x='index', y='actual_train', legend_label="Actual", line_width=2, source=source_train, color="green")
+        p2.line(x='index', y='predicted_train', legend_label="Predicted", line_width=2, source=source_train, color="red")
+        p3.line(x='index', y='actual_test', legend_label="Actual", line_width=2, source=source_test, color="green")
+        p3.line(x='index', y='predicted_test', legend_label="Predicted", line_width=2, source=source_test, color="red")
+        p2.legend.location = "top_left" 
+        p2.legend.click_policy = "hide"
+        p3.legend.location = "top_left" 
+        p3.legend.click_policy = "hide"
+        hover_train = HoverTool()
+        hover_train.tooltips = [
+            ("Date", "@index{%F}"),
+            ("Actual Value", "@{actual_train}{0,0.0000}"),
+            ("Predicted Value", "@{predicted_train}{0,0.0000}")
+        ]
+        hover_train.formatters = {"@index": "datetime"}
+
+        hover_test = HoverTool()
+        hover_test.tooltips = [
+            ("Date", "@index{%F}"),
+            ("Actual Value", "@{actual_test}{0,0.0000}"),
+            ("Predicted Value", "@{predicted_test}{0,0.0000}")
+        ]
+        hover_test.formatters = {"@index": "datetime"}
+
+        p2.add_tools(hover_train)
+        p3.add_tools(hover_test)
+        output_notebook()
+        return(show(row(p2, p3), notebook_handle=True))
+    
     def update_config_mapping(self, folder_name="models_assets"):
         """
         Update the configuration mapping with model_id.
@@ -217,12 +275,13 @@ class BaseModel_ML:
         # Update the config mapping
         self.update_config_mapping(folder_name)
 
-        # Save the model
+        # Generate a filename
         model_id = self.generate_model_id()
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{self.__class__.__name__}_V{version}_{model_id}.h5"
+        filename = f"{self.__class__.__name__}_V{version}_{model_id}.joblib"
         full_path = os.path.join(folder_name, filename)
-        self.model.save(full_path)
+
+        # Serialize and save the model
+        joblib.dump(self.model, full_path)
         self.logging.info(f"Model saved to {full_path}")
 
     def generate_model_id(self):
@@ -281,69 +340,10 @@ class BaseModel_ML:
             df.to_csv(filepath, mode='a', header=False, index=False)
         self.logging.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
 
-    def plot_predictions(self, plot=True):
-        if not plot:
-            return        
-        if not hasattr(self, 'train_comparison_df') or not hasattr(self, 'test_comparison_df'):
-            print("No predictions are available. Generate predictions first.")
-            return
-        actual_train = self.train_comparison_df['Actual']
-        predicted_train = self.train_comparison_df['Predicted']
-        actual_test = self.test_comparison_df['Actual']
-        predicted_test = self.test_comparison_df['Predicted']
-        index_train = self.train_comparison_df.index
-        index_test = self.test_comparison_df.index
-
-        # Preparing data
-        source_train = ColumnDataSource(data=dict(
-            index=index_train,
-            actual_train=actual_train,
-            predicted_train=predicted_train
-        ))
-
-        source_test = ColumnDataSource(data=dict(
-            index=index_test,
-            actual_test=actual_test,
-            predicted_test=predicted_test
-        ))
-
-        p2 = figure(width=700, height=600, title="Training Data: Actual vs Predicted", x_axis_label='Date', y_axis_label='Value', x_axis_type="datetime")
-        p3 = figure(width=700, height=600, title="Testing Data: Actual vs Predicted",x_axis_label='Date', y_axis_label='Value', x_axis_type="datetime")
-        p2.line(x='index', y='actual_train', legend_label="Actual", line_width=2, source=source_train, color="green")
-        p2.line(x='index', y='predicted_train', legend_label="Predicted", line_width=2, source=source_train, color="red")
-        p3.line(x='index', y='actual_test', legend_label="Actual", line_width=2, source=source_test, color="green")
-        p3.line(x='index', y='predicted_test', legend_label="Predicted", line_width=2, source=source_test, color="red")
-        p2.legend.location = "top_left" 
-        p2.legend.click_policy = "hide"
-        p3.legend.location = "top_left" 
-        p3.legend.click_policy = "hide"
-        hover_train = HoverTool()
-        hover_train.tooltips = [
-            ("Date", "@index{%F}"),
-            ("Actual Value", "@{actual_train}{0,0.0000}"),
-            ("Predicted Value", "@{predicted_train}{0,0.0000}")
-        ]
-        hover_train.formatters = {"@index": "datetime"}
-
-        hover_test = HoverTool()
-        hover_test.tooltips = [
-            ("Date", "@index{%F}"),
-            ("Actual Value", "@{actual_test}{0,0.0000}"),
-            ("Predicted Value", "@{predicted_test}{0,0.0000}")
-        ]
-        hover_test.formatters = {"@index": "datetime"}
-
-        p2.add_tools(hover_train)
-        p3.add_tools(hover_test)
-        output_notebook()
-        return(show(row(p2, p3), notebook_handle=True))
-    
 
 
 
-
-
-class Enhanced_Linear_Regression(BaseModel_ML):
+class Linear_Regression(BaseModel_ML):
     """
     Enhanced Linear Regression model supporting Ridge and Lasso regularization.
     Inherits from BaseModel_ML.
@@ -365,7 +365,7 @@ class Enhanced_Linear_Regression(BaseModel_ML):
         # Update params with specific parameters of the regression model
         self.params.update({'regularization': regularization, 'alpha': alpha})
     
-class Enhanced_XGBoost(BaseModel_ML):
+class XGBoost(BaseModel_ML):
     """
     Enhanced XGBoost model that inherits from BaseModel_ML.
     """
@@ -379,7 +379,7 @@ class Enhanced_XGBoost(BaseModel_ML):
         logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
         self.params.update(self.config)
 
-class Enhanced_LightGBM(BaseModel_ML):
+class LightGBM(BaseModel_ML):
     """
     Enhanced LightGBM model that inherits from BaseModel_ML.
     """
@@ -389,7 +389,7 @@ class Enhanced_LightGBM(BaseModel_ML):
         logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
         self.params.update(self.config)
 
-class Enhanced_SVM(BaseModel_ML):
+class SVM(BaseModel_ML):
     """
     Enhanced SVM model that inherits from BaseModel_ML.
     """
@@ -399,7 +399,17 @@ class Enhanced_SVM(BaseModel_ML):
         logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
         self.params.update(self.config)
 
-class Enhanced_KNN(BaseModel_ML):
+class SVRegressor(BaseModel_ML):
+    """
+    Enhanced SVR model that inherits from BaseModel_ML.
+    """
+    def _initialize_model(self):
+        # Initialize SVR model with config parameters
+        self.model = SVR(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
+
+class KNN(BaseModel_ML):
     """
     Enhanced KNN model that inherits from BaseModel_ML.
     """
@@ -409,7 +419,7 @@ class Enhanced_KNN(BaseModel_ML):
         logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
         self.params.update(self.config)
 
-class Enhanced_RandomForest(BaseModel_ML):
+class RandomForest(BaseModel_ML):
     """
     Enhanced Random Forest model that inherits from BaseModel_ML.
     """
@@ -431,17 +441,7 @@ class Enhanced_RandomForest(BaseModel_ML):
         except Exception as e:
             logging.error(f"Error occurred while extracting feature importance: {str(e)}")
 
-class Enhanced_SVR(BaseModel_ML):
-    """
-    Enhanced SVR model that inherits from BaseModel_ML.
-    """
-    def _initialize_model(self):
-        # Initialize SVR model with config parameters
-        self.model = SVR(**self.config)
-        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
-        self.params.update(self.config)
-
-class Enhanced_ExtraTrees(BaseModel_ML):
+class ExtraTrees(BaseModel_ML):
     """
     Enhanced Extra Trees model that inherits from BaseModel_ML.
     """
@@ -464,16 +464,16 @@ data_preprocessor.normalize_data(scaler_type='MinMax', plot=False)
 data_preprocessor.normalize_target(scaler_type='MinMax', plot=False)
 
 models = {
-    'Enhanced_Linear_Regression': {
-        'class': Enhanced_Linear_Regression,
+    'LR': {
+        'class': Linear_Regression,
         'config': {
             'regularization': 'ridge',
             'alpha': 1.0
         },
         'skip': False
     },
-    'Enhanced_XGBoost': {
-        'class': Enhanced_XGBoost,
+    'XGBoost': {
+        'class': XGBoost,
         'config': {
             'objective': 'reg:squarederror',
             'learning_rate': 0.1,
@@ -482,8 +482,8 @@ models = {
         },
         'skip': False
     },
-    'Enhanced_LightGBM': {
-        'class': Enhanced_LightGBM,
+    'LightGBM': {
+        'class': LightGBM,
         'config': {
             'objective': 'regression',
             'learning_rate': 0.1,
@@ -492,8 +492,8 @@ models = {
         },
         'skip': False
     },
-    'Enhanced_SVM': {
-        'class': Enhanced_SVM,
+    'SVM': {
+        'class': SVM,
         'config': {
             'kernel': 'rbf',
             'C': 1.0,
@@ -501,8 +501,8 @@ models = {
         },
         'skip': False
     },
-    'Enhanced_SVR': {
-        'class': Enhanced_SVR,
+    'SVRegressor': {
+        'class': SVRegressor,
         'config': {
             'kernel': 'rbf',
             'C': 1.0,
@@ -510,8 +510,8 @@ models = {
         },
         'skip': False
     },
-    'Enhanced_KNN': {
-        'class': Enhanced_KNN,
+    'KNN': {
+        'class': KNN,
         'config': {
             'n_neighbors': 5,
             'weights': 'uniform',
@@ -520,7 +520,7 @@ models = {
         'skip': False
     },
     'Enhanced_RandomForest': {
-        'class': Enhanced_RandomForest,
+        'class': RandomForest,
         'config': {
             'n_estimators': 100,
             'criterion': 'poisson',
@@ -528,8 +528,8 @@ models = {
         },
         'skip': False
     },
-    'Enhanced_ExtraTrees': {
-        'class': Enhanced_ExtraTrees,
+    'ExtraTrees': {
+        'class': ExtraTrees,
         'config': {
             'n_estimators': 100,
             'criterion': 'squared_error',
@@ -555,23 +555,22 @@ def run_models(models, run_only=None, skip=None):
         model.train_model()
         model.make_predictions()
         evaluation_df = model.evaluate_model()
-
+        display(evaluation_df)
+        print(f"{name} Model Evaluation:\n", evaluation_df)
+        model.plot_predictions(plot=True)
+                
         # Generate a unique model_id for this run
         model_id = model.generate_model_id()
         model.save_predictions(model_id, subfolder='model_machine_learning', overwrite=False)
         model.save_accuracy(model_id, subfolder='model_machine_learning', overwrite=False)
-
-        display(evaluation_df)
-        print(f"{name} Model Evaluation:\n", evaluation_df)
-        model.plot_predictions(plot=False)
-        #model.save_model_to_folder(version="2")
+        model.save_model_to_folder(version="1")
 
 
 # Run all models
 run_models(models)
 
 # Run only specific models
-#run_models(models, run_only=['Enhanced_Linear_Regression'])
+#run_models(models, run_only=['Baby_Cow', 'Baby_coooow'])
 
 # Skip specific models
-#run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])
+#run_models(models, data_preprocessor, skip=['Linear_Regression'])

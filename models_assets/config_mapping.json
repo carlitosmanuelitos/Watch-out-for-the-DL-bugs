@@ -1,0 +1,86 @@
+{
+    "LR_909612": {
+        "Model Class": "Linear_Regression",
+        "Config": {
+            "regularization": "ridge",
+            "alpha": 1.0
+        }
+    },
+    "XGBoost_93ce58": {
+        "Model Class": "XGBoost",
+        "Config": {
+            "objective": "reg:squarederror",
+            "learning_rate": 0.1,
+            "n_estimators": 100,
+            "max_depth": 5
+        }
+    },
+    "LightGBM_847f0b": {
+        "Model Class": "LightGBM",
+        "Config": {
+            "objective": "regression",
+            "learning_rate": 0.1,
+            "n_estimators": 100,
+            "max_depth": 5
+        }
+    },
+    "SVM_6de0eb": {
+        "Model Class": "SVM",
+        "Config": {
+            "kernel": "rbf",
+            "C": 1.0,
+            "epsilon": 0.1
+        }
+    },
+    "SVRegressor_6de0eb": {
+        "Model Class": "SVRegressor",
+        "Config": {
+            "kernel": "rbf",
+            "C": 1.0,
+            "epsilon": 0.1
+        }
+    },
+    "KNN_f67d60": {
+        "Model Class": "KNN",
+        "Config": {
+            "n_neighbors": 5,
+            "weights": "uniform",
+            "algorithm": "auto"
+        }
+    },
+    "Enhanced_RandomForest_cd5fc6": {
+        "Model Class": "RandomForest",
+        "Config": {
+            "n_estimators": 100,
+            "criterion": "poisson",
+            "max_depth": null
+        }
+    },
+    "ExtraTrees_c8cf27": {
+        "Model Class": "ExtraTrees",
+        "Config": {
+            "n_estimators": 100,
+            "criterion": "squared_error",
+            "max_depth": null
+        }
+    },
+    "LSTM_Original_84d4b5": {
+        "Model Class": "LSTMModel",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 2,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    }
+}

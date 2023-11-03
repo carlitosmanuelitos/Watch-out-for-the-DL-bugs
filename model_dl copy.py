@@ -338,7 +338,7 @@ class BaseModelLSTM():
         # Save updated mappings
         with open(mapping_file_path, 'w') as f:
             json.dump(existing_mappings, f, indent=4)
-        self.logger.info(f"Configuration mapping updated in {folder_name}")
+        self.logging.info(f"Configuration mapping updated in {folder_name}")
 
     def save_model_to_folder(self, version, folder_name="models_assets"):
         """
@@ -360,14 +360,14 @@ class BaseModelLSTM():
         filename = f"{self.__class__.__name__}_V{version}_{model_id}.h5"
         full_path = os.path.join(folder_name, filename)
         self.model.save(full_path)
-        self.logger.info(f"Model saved to {full_path}")
+        self.logging.info(f"Model saved to {full_path}")
 
     def generate_model_id(self):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         config_str = json.dumps(self.config, sort_keys=True)
         config_hash = hashlib.md5(config_str.encode()).hexdigest()[:6]
         model_id = f"{self.model_type}_{config_hash}"
-        self.logger.info(f"Generated model ID: {model_id}")
+        self.logging.info(f"Generated model ID: {model_id}")
         return model_id
 
     def save_predictions(self, model_id, subfolder=None, overwrite=False):
@@ -392,7 +392,7 @@ class BaseModelLSTM():
             df.to_csv(filepath, index=False)
         else:
             df.to_csv(filepath, mode='a', header=False, index=False)
-        self.logger.info(f"Predictions saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Predictions appended to {filepath}")
+        self.logging.info(f"Predictions saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Predictions appended to {filepath}")
 
     def save_accuracy(self, model_id, subfolder=None, overwrite=False):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -416,7 +416,7 @@ class BaseModelLSTM():
             df.to_csv(filepath, index=False)
         else:
             df.to_csv(filepath, mode='a', header=False, index=False)
-        self.logger.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
+        self.logging.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
 
 
 class LSTMModel(BaseModelLSTM):
@@ -698,17 +698,16 @@ def run_models(models, run_only=None, skip=None):
         model.train_model(epochs=100, batch_size=32)
         model.make_predictions()
         evaluation_df = model.evaluate_model()
-
-        # Generate a unique model_id for this run
-        #model_id = model.generate_model_id()
-        #model.save_predictions(model_id, subfolder='model_deep_learning', overwrite=False)
-        #model.save_accuracy(model_id, subfolder='model_deep_learning', overwrite=False)
-
         display(evaluation_df)
         print(f"{name} Model Evaluation:\n", evaluation_df)
-        model.plot_history()
-        model.plot_predictions(plot=False)
-        #model.save_model_to_folder(version="2")
+        model.plot_history(plot=True)
+        model.plot_predictions(plot=True)
+
+        # Generate a unique model_id for this run
+        model_id = model.generate_model_id()
+        model.save_predictions(model_id, subfolder='model_deep_learning', overwrite=False)
+        model.save_accuracy(model_id, subfolder='model_deep_learning', overwrite=False)
+        model.save_model_to_folder(version="1")
 
 
 
