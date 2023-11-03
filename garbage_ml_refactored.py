@@ -103,165 +103,28 @@ class BaseModel_ML:
         logging.info(f"Raw predictions made with shapes train: {self.train_predictions.shape}, test: {self.test_predictions.shape}")
 
     def _make_unscaled_predictions(self):
-    # Check if the shape of the predictions matches that of y_train and y_test
-    if self.train_predictions.ndim > 1 and self.train_predictions.shape[1] != 1:
-        logging.error(f"Unexpected number of columns in train_predictions: {self.train_predictions.shape[1]}")
-        return
-
-    if self.test_predictions.ndim > 1 and self.test_predictions.shape[1] != 1:
-        logging.error(f"Unexpected number of columns in test_predictions: {self.test_predictions.shape[1]}")
-        return
-
-    # If predictions are 2D, flatten to 1D
-    if self.train_predictions.ndim == 2:
-        self.train_predictions = self.train_predictions.flatten()
-
-    if self.test_predictions.ndim == 2:
-        self.test_predictions = self.test_predictions.flatten()
-
-    # Perform the inverse transformation to get unscaled values if required
-    if self.target_scaler:
-        self.train_predictions = self.target_scaler.inverse_transform(self.train_predictions.reshape(-1, 1)).flatten()
-        self.test_predictions = self.target_scaler.inverse_transform(self.test_predictions.reshape(-1, 1)).flatten()
-
-    logging.info(f"Unscaled predictions made with shapes train: {self.train_predictions.shape}, test: {self.test_predictions.shape}")
-
-
-
-
-
-    def inverse_scale_predictions(self):
-        """ Inverse and unscale the predicstion back to their original shape"""
-        try:
-            self.train_predictions = self.target_scaler.inverse_transform(self.train_predictions.reshape(-1, 1)).flatten()
-            self.test_predictions = self.target_scaler.inverse_transform(self.test_predictions.reshape(-1, 1)).flatten()
-            logging.info("Predictions inverse transformed to original scale")
-        except Exception as e:
-            logging.error(f"Error occurred while inverse transforming predictions: {str(e)}")
-            
-    def compare_predictions(self):
-        """Create dataframes comparing the original and predicted values for both training and test sets."""
-        try:
-            train_indices = self.data['Close'].iloc[:len(self.y_train)].values
-            test_indices = self.data['Close'].iloc[-len(self.y_test):].values
-
-            train_comparison_df = pd.DataFrame({'Original': train_indices, 'Predicted': self.train_predictions.ravel()})
-            test_comparison_df = pd.DataFrame({'Original': test_indices, 'Predicted': self.test_predictions.ravel()})
-
-            train_date_index = self.data.index[:len(self.y_train)]
-            test_date_index = self.data.index[-len(self.y_test):]
-
-            train_comparison_df.set_index(train_date_index, inplace=True)
-            test_comparison_df.set_index(test_date_index, inplace=True)
-            logging.info("Comparison dataframes generated")
-            return train_comparison_df, test_comparison_df
-        except Exception as e:
-            logging.error(f"Error occurred while creating comparison dataframes: {str(e)}")
-
-    def evaluate_model(self):
-        """Evaluate the model using various metrics for both training and test sets."""
-        try:
-            train_comparison_df, test_comparison_df = self.compare_predictions()
-            metrics = {
-                'RMSE': lambda y_true, y_pred: np.sqrt(mean_squared_error(y_true, y_pred)),
-                'R2 Score': r2_score,
-                'MAE': mean_absolute_error,
-                'Explained Variance': explained_variance_score
-            }
-
-            results = []
-            for dataset, comparison_df in [('Train', train_comparison_df), ('Test', test_comparison_df)]:
-                dataset_results = {metric_name: metric_func(comparison_df['Original'], comparison_df['Predicted']) for metric_name, metric_func in metrics.items()}
-                results.append(dataset_results)
-
-            results_df = pd.DataFrame(results, index=['Train', 'Test'])
-            return results_df
-        except Exception as e:
-            logging.error(f"Error occurred while evaluating the model: {str(e)}")
-        
-    @staticmethod
-    def update_config_hash_mapping(config_hash, config, folder_name="models_assets"):
-        mapping_file_path = os.path.join(folder_name, 'config_hash_mapping.json')
-        if os.path.exists(mapping_file_path):
-            with open(mapping_file_path, 'r') as f:
-                existing_mappings = json.load(f)
-        else:
-            existing_mappings = {}
-
-        existing_mappings[config_hash] = config
-
-        # Save updated mappings
-        with open(mapping_file_path, 'w') as f:
-            json.dump(existing_mappings, f, indent=4)
-
-    def save_model_to_folder(self, version, folder_name="models_assets"):
-        model_name = self.__class__.__name__[9:]  # Remove 'Enhanced_' from the class name
-        config_str = json.dumps(self.config, sort_keys=True)
-        config_hash = hashlib.md5(config_str.encode()).hexdigest()[:6]
-
-        if not os.path.exists(folder_name):
-            os.makedirs(folder_name)
-
-        BaseModel_ML.update_config_hash_mapping(config_hash, self.config, folder_name)
-
-        # Save the model
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{model_name}_V{version}_{config_hash}_{timestamp}.joblib"
-        full_path = os.path.join(folder_name, filename)
-        dump(self.model, full_path)
-        logging.info(f"Model saved to {full_path}")
-        
-    def plot_predictions(self, plot=True):
-        """Plot the original vs predicted values for both training and testing data."""
-        if not plot:
+        # Check if the shape of the predictions matches that of y_train and y_test
+        if self.train_predictions.ndim > 1 and self.train_predictions.shape[1] != 1:
+            logging.error(f"Unexpected number of columns in train_predictions: {self.train_predictions.shape[1]}")
             return
 
-        train_comparison_df, test_comparison_df = self.compare_predictions()
-        train_comparison_df.index = pd.to_datetime(train_comparison_df.index)
-        test_comparison_df.index = pd.to_datetime(test_comparison_df.index)
+        if self.test_predictions.ndim > 1 and self.test_predictions.shape[1] != 1:
+            logging.error(f"Unexpected number of columns in test_predictions: {self.test_predictions.shape[1]}")
+            return
 
-        source_train = ColumnDataSource(data=dict(
-            date=train_comparison_df.index,
-            original=train_comparison_df['Original'],
-            predicted=train_comparison_df['Predicted']
-        ))
+        # If predictions are 2D, flatten to 1D
+        if self.train_predictions.ndim == 2:
+            self.train_predictions = self.train_predictions.flatten()
 
-        source_test = ColumnDataSource(data=dict(
-            date=test_comparison_df.index,
-            original=test_comparison_df['Original'],
-            predicted=test_comparison_df['Predicted']
-        ))
+        if self.test_predictions.ndim == 2:
+            self.test_predictions = self.test_predictions.flatten()
 
-        p1 = figure(width=700, height=600, x_axis_type="datetime", title="Training Data: Actual vs Predicted")
-        p1.line('date', 'original', legend_label="Actual", line_alpha=0.6, source=source_train)
-        p1.line('date', 'predicted', legend_label="Predicted", line_color="red", line_dash="dashed", source=source_train)
-        p1.legend.location = "top_left"
+        # Perform the inverse transformation to get unscaled values if required
+        if self.target_scaler:
+            self.train_predictions = self.target_scaler.inverse_transform(self.train_predictions.reshape(-1, 1)).flatten()
+            self.test_predictions = self.target_scaler.inverse_transform(self.test_predictions.reshape(-1, 1)).flatten()
 
-        p2 = figure(width=700, height=600, x_axis_type="datetime", title="Testing Data: Actual vs Predicted")
-        p2.line('date', 'original', legend_label="Actual", line_alpha=0.6, source=source_test)
-        p2.line('date', 'predicted', legend_label="Predicted", line_color="red", line_dash="dashed", source=source_test)
-        p2.legend.location = "top_left"
-
-        hover1 = HoverTool()
-        hover1.tooltips = [
-            ("Date", "@date{%F}"),
-            ("Actual Value", "@original{0,0.0000}"),
-            ("Predicted Value", "@predicted{0,0.0000}")
-        ]
-        hover1.formatters = {"@date": "datetime"}
-        p1.add_tools(hover1)
-
-        hover2 = HoverTool()
-        hover2.tooltips = [
-            ("Date", "@date{%F}"),
-            ("Actual Value", "@original{0,0.0000}"),
-            ("Predicted Value", "@predicted{0,0.0000}")
-        ]
-        hover2.formatters = {"@date": "datetime"}
-        p2.add_tools(hover2)
-
-        # Show plots
-        return(show(row(p1, p2), notebook_handle=True))
+        logging.info(f"Unscaled predictions made with shapes train: {self.train_predictions.shape}, test: {self.test_predictions.shape}")
 
     def _create_comparison_dfs(self):
         # Check if the target scaler was used and inverse transform if necessary
@@ -338,7 +201,7 @@ class BaseModel_ML:
         # Save updated mappings
         with open(mapping_file_path, 'w') as f:
             json.dump(existing_mappings, f, indent=4)
-        self.logger.info(f"Configuration mapping updated in {folder_name}")
+        self.logging.info(f"Configuration mapping updated in {folder_name}")
 
     def save_model_to_folder(self, version, folder_name="models_assets"):
         """
@@ -360,14 +223,14 @@ class BaseModel_ML:
         filename = f"{self.__class__.__name__}_V{version}_{model_id}.h5"
         full_path = os.path.join(folder_name, filename)
         self.model.save(full_path)
-        self.logger.info(f"Model saved to {full_path}")
+        self.logging.info(f"Model saved to {full_path}")
 
     def generate_model_id(self):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         config_str = json.dumps(self.config, sort_keys=True)
         config_hash = hashlib.md5(config_str.encode()).hexdigest()[:6]
         model_id = f"{self.model_type}_{config_hash}"
-        self.logger.info(f"Generated model ID: {model_id}")
+        self.logging.info(f"Generated model ID: {model_id}")
         return model_id
 
     def save_predictions(self, model_id, subfolder=None, overwrite=False):
@@ -392,7 +255,7 @@ class BaseModel_ML:
             df.to_csv(filepath, index=False)
         else:
             df.to_csv(filepath, mode='a', header=False, index=False)
-        self.logger.info(f"Predictions saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Predictions appended to {filepath}")
+        self.logging.info(f"Predictions saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Predictions appended to {filepath}")
 
     def save_accuracy(self, model_id, subfolder=None, overwrite=False):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -416,7 +279,7 @@ class BaseModel_ML:
             df.to_csv(filepath, index=False)
         else:
             df.to_csv(filepath, mode='a', header=False, index=False)
-        self.logger.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
+        self.logging.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
 
     def plot_predictions(self, plot=True):
         if not plot:
@@ -478,6 +341,8 @@ class BaseModel_ML:
 
 
 
+
+
 class Enhanced_Linear_Regression(BaseModel_ML):
     """
     Enhanced Linear Regression model supporting Ridge and Lasso regularization.
@@ -495,7 +360,7 @@ class Enhanced_Linear_Regression(BaseModel_ML):
             self.model = LinearRegression()
         
         # Log the initialization with model type and regularization type
-        self.logging.info(f"{self.model_type} model initialized with {regularization} regularization and alpha={alpha}")
+        logging.info(f"{self.model_type} model initialized with {regularization} regularization and alpha={alpha}")
 
         # Update params with specific parameters of the regression model
         self.params.update({'regularization': regularization, 'alpha': alpha})
@@ -504,16 +369,15 @@ class Enhanced_XGBoost(BaseModel_ML):
     """
     Enhanced XGBoost model that inherits from BaseModel_ML.
     """
-
     def _initialize_model(self):
         """
         Initialize the XGBoost model with parameters from the config.
         """
         # Set up the XGBoost model based on the configuration
-        self.model = XGBRegressor(**self.config['xgboost_params'])
+        self.model = xgb.XGBRegressor(**self.config)
         
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['xgboost_params']}")
-        self.params.update(self.config['xgboost_params'])
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
 class Enhanced_LightGBM(BaseModel_ML):
     """
@@ -521,9 +385,9 @@ class Enhanced_LightGBM(BaseModel_ML):
     """
     def _initialize_model(self):
         # Initialize LightGBM model with config parameters
-        self.model = LGBMRegressor(**self.config['lightgbm_params'])
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['lightgbm_params']}")
-        self.params.update(self.config['lightgbm_params'])
+        self.model = LGBMRegressor(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
 class Enhanced_SVM(BaseModel_ML):
     """
@@ -531,9 +395,9 @@ class Enhanced_SVM(BaseModel_ML):
     """
     def _initialize_model(self):
         # Initialize SVM model with config parameters
-        self.model = SVR(**self.config['svm_params'])
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['svm_params']}")
-        self.params.update(self.config['svm_params'])
+        self.model = SVR(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
 class Enhanced_KNN(BaseModel_ML):
     """
@@ -541,9 +405,9 @@ class Enhanced_KNN(BaseModel_ML):
     """
     def _initialize_model(self):
         # Initialize KNN model with config parameters
-        self.model = KNeighborsRegressor(**self.config['knn_params'])
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['knn_params']}")
-        self.params.update(self.config['knn_params'])
+        self.model = KNeighborsRegressor(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
 class Enhanced_RandomForest(BaseModel_ML):
     """
@@ -551,9 +415,9 @@ class Enhanced_RandomForest(BaseModel_ML):
     """
     def _initialize_model(self):
         # Initialize Random Forest model with config parameters
-        self.model = RandomForestRegressor(**self.config['random_forest_params'])
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['random_forest_params']}")
-        self.params.update(self.config['random_forest_params'])
+        self.model = RandomForestRegressor(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
     # The feature_importance method can be kept as is if it provides additional functionality specific to Random Forest.
     def feature_importance(self):
@@ -573,9 +437,9 @@ class Enhanced_SVR(BaseModel_ML):
     """
     def _initialize_model(self):
         # Initialize SVR model with config parameters
-        self.model = SVR(**self.config['svr_params'])
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['svr_params']}")
-        self.params.update(self.config['svr_params'])
+        self.model = SVR(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
 class Enhanced_ExtraTrees(BaseModel_ML):
     """
@@ -583,9 +447,9 @@ class Enhanced_ExtraTrees(BaseModel_ML):
     """
     def _initialize_model(self):
         # Initialize Extra Trees model with config parameters
-        self.model = ExtraTreesRegressor(**self.config['extra_trees_params'])
-        self.logging.info(f"{self.model_type} model initialized with configuration: {self.config['extra_trees_params']}")
-        self.params.update(self.config['extra_trees_params'])
+        self.model = ExtraTreesRegressor(**self.config)
+        logging.info(f"{self.model_type} model initialized with configuration: {self.config}")
+        self.params.update(self.config)
 
 
 
@@ -693,22 +557,21 @@ def run_models(models, run_only=None, skip=None):
         evaluation_df = model.evaluate_model()
 
         # Generate a unique model_id for this run
-        #model_id = model.generate_model_id()
-        #model.save_predictions(model_id, subfolder='model_machine_learning', overwrite=False)
-        #model.save_accuracy(model_id, subfolder='model_machine_learning', overwrite=False)
+        model_id = model.generate_model_id()
+        model.save_predictions(model_id, subfolder='model_machine_learning', overwrite=False)
+        model.save_accuracy(model_id, subfolder='model_machine_learning', overwrite=False)
 
         display(evaluation_df)
         print(f"{name} Model Evaluation:\n", evaluation_df)
-        model.plot_history()
         model.plot_predictions(plot=False)
         #model.save_model_to_folder(version="2")
 
 
 # Run all models
-run_models(models, data_preprocessor)
+run_models(models)
 
 # Run only specific models
-#run_models(models, data_preprocessor, run_only=['Enhanced_Linear_Regression', 'Enhanced_XGBoost'])
+#run_models(models, run_only=['Enhanced_Linear_Regression'])
 
 # Skip specific models
 #run_models(models, data_preprocessor, skip=['Enhanced_Linear_Regression'])
