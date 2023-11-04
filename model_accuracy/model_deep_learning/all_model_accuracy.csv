@@ -1,3 +1,0 @@
-Date Run,Model Class,Model ID,Config,index,RMSE,R2 Score,MAE,Explained Variance
-2023-11-03 21:34:18,LSTMModel,LSTM_Original_84d4b5,"{""input_shape"": [10, 5], ""num_lstm_layers"": 2, ""lstm_units"": [50, 30], ""dropout"": 0.2, ""dense_units"": [1], ""optimizer"": ""adam""}",Train,2920.9670157629325,0.9459281722753243,975.9365870007075,0.9495251817911686
-2023-11-03 21:34:18,LSTMModel,LSTM_Original_84d4b5,"{""input_shape"": [10, 5], ""num_lstm_layers"": 2, ""lstm_units"": [50, 30], ""dropout"": 0.2, ""dense_units"": [1], ""optimizer"": ""adam""}",Test,6164.60559846419,0.7367341516824594,4228.085877564118,0.8544022374327918
