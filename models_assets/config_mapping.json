@@ -1,206 +1,67 @@
 {
-    "DL_LSTM_84d4b5": {
-        "Model Class": "LSTM_",
+    "ML_LR_909612": {
+        "Model Class": "Linear_Regression",
         "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "num_lstm_layers": 2,
-            "lstm_units": [
-                50,
-                30
-            ],
-            "dropout": 0.2,
-            "dense_units": [
-                1
-            ],
-            "optimizer": "adam"
+            "regularization": "ridge",
+            "alpha": 1.0
         }
     },
-    "DL_BiLSTM_e0952f": {
-        "Model Class": "Bi_LSTM",
+    "ML_XGBoost_93ce58": {
+        "Model Class": "XGBoost",
         "Config": {
-            "num_lstm_layers": 2,
-            "lstm_units": [
-                50,
-                30
-            ],
-            "dropout": 0.2,
-            "dense_units": [
-                1
-            ],
-            "optimizer": "adam"
+            "objective": "reg:squarederror",
+            "learning_rate": 0.1,
+            "n_estimators": 100,
+            "max_depth": 5
         }
     },
-    "DL_GRU_d5ae1c": {
-        "Model Class": "GRU_",
+    "ML_LightGBM_847f0b": {
+        "Model Class": "LightGBM",
         "Config": {
-            "num_gru_layers": 2,
-            "gru_units": [
-                50,
-                30
-            ],
-            "dropout": 0.2,
-            "dense_units": [
-                1
-            ],
-            "optimizer": "adam"
+            "objective": "regression",
+            "learning_rate": 0.1,
+            "n_estimators": 100,
+            "max_depth": 5
         }
     },
-    "DL_BiGRU_512ccd": {
-        "Model Class": "Bi_GRU",
+    "ML_SVM_6de0eb": {
+        "Model Class": "SVM",
         "Config": {
-            "input_shape": [
-                10,
-                30
-            ],
-            "num_gru_layers": 2,
-            "gru_units": [
-                50,
-                30
-            ],
-            "dense_units": [
-                1
-            ],
-            "dropout": 0.2,
-            "optimizer": "adam"
+            "kernel": "rbf",
+            "C": 1.0,
+            "epsilon": 0.1
         }
     },
-    "DL_SimpleRNN_95ac09": {
-        "Model Class": "Simple_RNN",
+    "ML_SVRegressor_6de0eb": {
+        "Model Class": "SVRegressor",
         "Config": {
-            "input_shape": [
-                10,
-                30
-            ],
-            "num_rnn_layers": 2,
-            "rnn_units": [
-                50,
-                30
-            ],
-            "dense_units": [
-                1
-            ],
-            "dropout": 0.2,
-            "optimizer": "adam"
+            "kernel": "rbf",
+            "C": 1.0,
+            "epsilon": 0.1
         }
     },
-    "DL_StackedRNN_17029b": {
-        "Model Class": "Stacked_RNN",
+    "ML_KNN_f67d60": {
+        "Model Class": "KNN",
         "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "lstm_units": [
-                50,
-                30
-            ],
-            "gru_units": [
-                20
-            ],
-            "dropout": 0.2,
-            "dense_units": [
-                1
-            ],
-            "optimizer": "adam"
+            "n_neighbors": 5,
+            "weights": "uniform",
+            "algorithm": "auto"
         }
     },
-    "DL_AttentionLSTM_84d4b5": {
-        "Model Class": "Attention_LSTM",
+    "ML_RandomForest_cd5fc6": {
+        "Model Class": "RandomForest",
         "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "num_lstm_layers": 2,
-            "lstm_units": [
-                50,
-                30
-            ],
-            "dropout": 0.2,
-            "dense_units": [
-                1
-            ],
-            "optimizer": "adam"
+            "n_estimators": 100,
+            "criterion": "poisson",
+            "max_depth": null
         }
     },
-    "DL_CNNLSTM_f7a983": {
-        "Model Class": "CNN_LSTM",
+    "ML_ExtraTrees_c8cf27": {
+        "Model Class": "ExtraTrees",
         "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "num_conv_layers": 2,
-            "conv_filters": [
-                64,
-                32
-            ],
-            "conv_kernel_size": [
-                3,
-                2
-            ],
-            "num_lstm_layers": 1,
-            "lstm_units": [
-                50
-            ],
-            "dropout": 0.2,
-            "dense_units": [
-                1
-            ],
-            "optimizer": "adam"
-        }
-    },
-    "TRANSFORMER_6873b5": {
-        "Model Class": "SOA_TRANSFORMER",
-        "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "sequence_length": 10,
-            "num_features": 5,
-            "num_layers": 2,
-            "embed_size": 64,
-            "heads": 4,
-            "dropout": 0.2,
-            "forward_expansion": 2,
-            "optimizer": "adam",
-            "loss": "mae"
-        }
-    },
-    "SOA_LSTNET_4e1e83": {
-        "Model Class": "SOA_LSTNET",
-        "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "sequence_length": 10,
-            "num_features": 5,
-            "cnn_filters": 64,
-            "gru_units": 64,
-            "kernel_size": 3,
-            "optimizer": "adam",
-            "loss": "mae"
-        }
-    },
-    "SOA_WAVENET_9b1c88": {
-        "Model Class": "SOA_WAVENET",
-        "Config": {
-            "input_shape": [
-                10,
-                5
-            ],
-            "sequence_length": 10,
-            "num_features": 5,
-            "num_blocks": 4,
-            "filters": 32,
-            "kernel_size": 2,
-            "optimizer": "adam",
-            "loss": "mae"
+            "n_estimators": 100,
+            "criterion": "squared_error",
+            "max_depth": null
         }
     },
     "SOA_TCN_1443ed": {
@@ -252,6 +113,75 @@
             "loss": "mae",
             "learning_rate": 0.001,
             "batch_size": 1024
+        }
+    },
+    "SOA_WAVENET_9b1c88": {
+        "Model Class": "SOA_WAVENET",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "sequence_length": 10,
+            "num_features": 5,
+            "num_blocks": 4,
+            "filters": 32,
+            "kernel_size": 2,
+            "optimizer": "adam",
+            "loss": "mae"
+        }
+    },
+    "SOA_LSTNET_4e1e83": {
+        "Model Class": "SOA_LSTNET",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "sequence_length": 10,
+            "num_features": 5,
+            "cnn_filters": 64,
+            "gru_units": 64,
+            "kernel_size": 3,
+            "optimizer": "adam",
+            "loss": "mae"
+        }
+    },
+    "SOA_TRANSFORMER_6873b5": {
+        "Model Class": "SOA_TRANSFORMER",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "sequence_length": 10,
+            "num_features": 5,
+            "num_layers": 2,
+            "embed_size": 64,
+            "heads": 4,
+            "dropout": 0.2,
+            "forward_expansion": 2,
+            "optimizer": "adam",
+            "loss": "mae"
+        }
+    },
+    "DL_LSTM_84d4b5": {
+        "Model Class": "LSTM_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 2,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
         }
     }
 }

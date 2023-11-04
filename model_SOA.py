@@ -895,10 +895,10 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 
 
 # Run all models
-#run_models(models, data_preprocessor)
+run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['SOA_NBEATS'])
+#run_models(models, data_preprocessor, run_only=['SOA_NBEATS'])
 
 # Skip specific models
 #run_models(models, data_preprocessor, skip=['NBEATS'])

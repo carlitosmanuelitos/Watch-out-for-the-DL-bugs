@@ -1,0 +1,17 @@
+Date Run,Model Class,Model ID,Config,index,RMSE,R2 Score,MAE,Explained Variance
+2023-11-04 15:44:41,Linear_Regression,ML_LR_909612,"{""regularization"": ""ridge"", ""alpha"": 1.0}",Train,291.6692312165231,0.9994622413833463,137.89114833667847,0.9994622413833463
+2023-11-04 15:44:41,Linear_Regression,ML_LR_909612,"{""regularization"": ""ridge"", ""alpha"": 1.0}",Test,538.0355251958109,0.9979966401972805,415.12913704635844,0.9984888734117114
+2023-11-04 15:44:43,XGBoost,ML_XGBoost_93ce58,"{""objective"": ""reg:squarederror"", ""learning_rate"": 0.1, ""n_estimators"": 100, ""max_depth"": 5}",Train,135.69226050645923,0.999883609830939,58.57727507875659,0.9998836098620159
+2023-11-04 15:44:43,XGBoost,ML_XGBoost_93ce58,"{""objective"": ""reg:squarederror"", ""learning_rate"": 0.1, ""n_estimators"": 100, ""max_depth"": 5}",Test,1298.5844335048348,0.9883298231747125,896.3466323507731,0.9884149630626787
+2023-11-04 15:44:44,LightGBM,ML_LightGBM_847f0b,"{""objective"": ""regression"", ""learning_rate"": 0.1, ""n_estimators"": 100, ""max_depth"": 5}",Train,189.9501363295857,0.9997719209668627,73.3284332755504,0.9997719209668627
+2023-11-04 15:44:44,LightGBM,ML_LightGBM_847f0b,"{""objective"": ""regression"", ""learning_rate"": 0.1, ""n_estimators"": 100, ""max_depth"": 5}",Test,1371.4160827684304,0.9869840603062766,957.9616697531245,0.9876870745020662
+2023-11-04 15:44:44,SVM,ML_SVM_6de0eb,"{""kernel"": ""rbf"", ""C"": 1.0, ""epsilon"": 0.1}",Train,4831.3378915937565,0.8524494039924635,4632.065630606642,0.9639444807961782
+2023-11-04 15:44:44,SVM,ML_SVM_6de0eb,"{""kernel"": ""rbf"", ""C"": 1.0, ""epsilon"": 0.1}",Test,4511.68337440145,0.8591313739677453,4202.26065662062,0.8869939221624784
+2023-11-04 15:44:44,SVRegressor,ML_SVRegressor_6de0eb,"{""kernel"": ""rbf"", ""C"": 1.0, ""epsilon"": 0.1}",Train,4831.3378915937565,0.8524494039924635,4632.065630606642,0.9639444807961782
+2023-11-04 15:44:44,SVRegressor,ML_SVRegressor_6de0eb,"{""kernel"": ""rbf"", ""C"": 1.0, ""epsilon"": 0.1}",Test,4511.68337440145,0.8591313739677453,4202.26065662062,0.8869939221624784
+2023-11-04 15:44:45,KNN,ML_KNN_f67d60,"{""n_neighbors"": 5, ""weights"": ""uniform"", ""algorithm"": ""auto""}",Train,214.94034998078678,0.9997079601965594,81.83578418630577,0.9997080359903866
+2023-11-04 15:44:45,KNN,ML_KNN_f67d60,"{""n_neighbors"": 5, ""weights"": ""uniform"", ""algorithm"": ""auto""}",Test,1076.0198992402477,0.9919873226103787,832.3857551861919,0.9931643742377422
+2023-11-04 15:44:48,RandomForest,ML_RandomForest_cd5fc6,"{""n_estimators"": 100, ""criterion"": ""poisson"", ""max_depth"": null}",Train,52.72427184695304,0.9999824277519449,21.235630896296694,0.9999824329747848
+2023-11-04 15:44:48,RandomForest,ML_RandomForest_cd5fc6,"{""n_estimators"": 100, ""criterion"": ""poisson"", ""max_depth"": null}",Test,725.9078732126947,0.9963532997656396,586.2366407751182,0.997983838904411
+2023-11-04 15:44:50,ExtraTrees,ML_ExtraTrees_c8cf27,"{""n_estimators"": 100, ""criterion"": ""squared_error"", ""max_depth"": null}",Train,7.60294248002637e-06,1.0,2.004138408178601e-07,1.0
+2023-11-04 15:44:50,ExtraTrees,ML_ExtraTrees_c8cf27,"{""n_estimators"": 100, ""criterion"": ""squared_error"", ""max_depth"": null}",Test,710.4426201652236,0.9965070283081665,594.0491082996526,0.9984822319858233
