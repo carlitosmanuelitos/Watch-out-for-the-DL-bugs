@@ -308,7 +308,7 @@ class BaseModel_DL_SOA():
         # Save the model
         model_id = self.generate_model_id()
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{self.__class__.__name__}_V{version}_{model_id}.h5"
+        filename = f"{model_id}_V{version}_{self.__class__.__name__}.h5"
         full_path = os.path.join(folder_name, filename)
         self.save(full_path)
         self.logger.info(f"Model saved to {full_path}")
@@ -341,7 +341,7 @@ class BaseModel_DL_SOA():
             folder = os.path.join(folder, subfolder)
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filepath = os.path.join(folder, 'all_model_predictions.csv')
+        filepath = os.path.join(folder, 'SOA_model_predictions.csv')
         
         df = self.test_comparison_df.reset_index()
         df['Model Class'] = self.__class__.__name__
@@ -365,7 +365,7 @@ class BaseModel_DL_SOA():
             folder = os.path.join(folder, subfolder)
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filepath = os.path.join(folder, 'all_model_accuracy.csv')
+        filepath = os.path.join(folder, 'SOA_model_accuracy.csv')
         
         df = self.evaluation_df.reset_index()
         df['Model Class'] = self.__class__.__name__
@@ -493,86 +493,6 @@ class SOA_NBEATS(BaseModel_DL_SOA):
         )
         logger.info("Training completed.")
 
-    def save(self, path):
-        self.model.save(path)
-
-def wavenet_block(filters, kernel_size, dilation_rate):
-    def f(input_):
-        tanh_out = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal', activation='tanh')(input_)
-        sigmoid_out = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal', activation='sigmoid')(input_)
-        merged = Multiply()([tanh_out, sigmoid_out])
-        out = Conv1D(filters=filters, kernel_size=1, activation='relu')(merged)
-        skip = Conv1D(filters=filters, kernel_size=1)(out)
-        
-        # Adjust the residual connection's number of filters to match the input's filters
-        input_residual = Conv1D(filters=filters, kernel_size=1)(input_)
-        residual = Add()([skip, input_residual])
-        
-        return residual, skip
-    return f
-def build_wavenet_model(input_shape, num_blocks, filters, kernel_size):
-    input_ = Input(shape=input_shape)
-    x = input_
-    skip_connections = []
-    for dilation_rate in [2**i for i in range(num_blocks)]:
-        x, skip = wavenet_block(filters, kernel_size, dilation_rate)(x)
-        skip_connections.append(skip)
-    x = Add()(skip_connections)
-    x = Activation('relu')(x)
-    x = Conv1D(filters=filters, kernel_size=1, activation='relu')(x)
-    x = Conv1D(filters=filters, kernel_size=1)(x)
-    x = Flatten()(x)
-    output = Dense(1)(x)  # For regression; adjust if different task
-
-    model = Model(input_, output)
-    return model
-class SOA_WAVENET(BaseModel_DL_SOA):
-    
-    def __init__(self, model_type, data_preprocessor, config):
-        super(SOA_WAVENET, self).__init__(model_type, data_preprocessor, config)
-        self.X_train = data_preprocessor.X_train_seq
-        self.y_train = data_preprocessor.y_train_seq
-        self.X_test = data_preprocessor.X_test_seq
-        self.y_test = data_preprocessor.y_test_seq
-        self._initialize_model()
-
-    def _initialize_model(self):
-        logger.info("Initializing the WaveNet model...")
-        
-        self.model = build_wavenet_model(
-            input_shape=self.config['input_shape'],
-            num_blocks=self.config.get('num_blocks', 4),
-            filters=self.config.get('filters', 32),
-            kernel_size=self.config.get('kernel_size', 2)
-        )
-        
-        optimizer = self.config.get('optimizer', 'adam')
-        loss = self.config.get('loss', 'mae')
-        self.model.compile(optimizer=optimizer, loss=loss)
-        
-        logger.info("WaveNet model compiled successfully.")
-        self.model.summary()
-
-    def train_model(self, epochs=100, batch_size=32, early_stopping=True, patience=10, val_split=0.2):
-        logger.info(f"Training the WaveNet model for {epochs} epochs with batch size of {batch_size}...")
-        
-        callbacks = []
-        if early_stopping:
-            es_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience)
-            callbacks.append(es_callback)
-        
-        self.history = self.model.fit(
-            self.X_train, 
-            self.y_train, 
-            epochs=epochs,
-            batch_size=batch_size,
-            validation_split=val_split,
-            callbacks=callbacks
-        )
-        logger.info("Training completed.")
-    def save(self, path):
-        self.model.save(path)
-
 class SOA_LSTNET(BaseModel_DL_SOA):
     def __init__(self, model_type, data_preprocessor, config):
         super(SOA_LSTNET, self).__init__(model_type, data_preprocessor, config)
@@ -625,95 +545,172 @@ class SOA_LSTNET(BaseModel_DL_SOA):
         )
         logger.info("Training completed.")
 
-class MultiHeadSelfAttention(Layer):
-    def __init__(self, embed_size, heads):
-        super(MultiHeadSelfAttention, self).__init__()
-        self.embed_size = embed_size
-        self.heads = heads
-        self.head_dim = embed_size // heads
+class SOA_WAVENET(BaseModel_DL_SOA):
+    
+    def __init__(self, model_type, data_preprocessor, config):
+        super(SOA_WAVENET, self).__init__(model_type, data_preprocessor, config)
+        self.X_train = data_preprocessor.X_train_seq
+        self.y_train = data_preprocessor.y_train_seq
+        self.X_test = data_preprocessor.X_test_seq
+        self.y_test = data_preprocessor.y_test_seq
+        self._initialize_model()
 
-        assert (
-            self.head_dim * heads == embed_size
-        ), "Embedding size needs to be divisible by heads"
+    def wavenet_block(self, filters, kernel_size, dilation_rate):
+        def f(input_):
+            tanh_out = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal', activation='tanh')(input_)
+            sigmoid_out = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal', activation='sigmoid')(input_)
+            merged = Multiply()([tanh_out, sigmoid_out])
+            out = Conv1D(filters=filters, kernel_size=1, activation='relu')(merged)
+            skip = Conv1D(filters=filters, kernel_size=1)(out)
+            
+            # Adjust the residual connection's number of filters to match the input's filters
+            input_residual = Conv1D(filters=filters, kernel_size=1)(input_)
+            residual = Add()([skip, input_residual])
+            
+            return residual, skip
+        return f
 
-        logger.info("Initializing MultiHeadSelfAttention with embed_size %d and heads %d.", embed_size, heads)
+    def build_wavenet_model(self, input_shape, num_blocks, filters, kernel_size):
+        input_ = Input(shape=input_shape)
+        x = input_
+        skip_connections = []
+        for dilation_rate in [2**i for i in range(num_blocks)]:
+            x, skip = self.wavenet_block(filters, kernel_size, dilation_rate)(x)
+            skip_connections.append(skip)
+        x = Add()(skip_connections)
+        x = Activation('relu')(x)
+        x = Conv1D(filters=filters, kernel_size=1, activation='relu')(x)
+        x = Conv1D(filters=filters, kernel_size=1)(x)
+        x = Flatten()(x)
+        output = Dense(1)(x)  # For regression; adjust if different task
+
+        model = Model(input_, output)
+        return model
+
+    def _initialize_model(self):
+        logger.info("Initializing the WaveNet model...")
         
-        self.values = Dense(self.head_dim, activation="linear")
-        self.keys = Dense(self.head_dim, activation="linear")
-        self.queries = Dense(self.head_dim, activation="linear")
-        self.fc_out = Dense(embed_size, activation="linear")
-
-    def call(self, values, keys, queries, mask):
-        logger.info("Calling MultiHeadSelfAttention with values shape %s, keys shape %s, queries shape %s", str(values.shape), str(keys.shape), str(queries.shape))
+        self.model = self.build_wavenet_model(
+            input_shape=self.config['input_shape'],
+            num_blocks=self.config.get('num_blocks', 4),
+            filters=self.config.get('filters', 32),
+            kernel_size=self.config.get('kernel_size', 2)
+        )
         
-        N = tf.shape(queries)[0]
-        value_len, key_len, query_len = tf.shape(values)[1], tf.shape(keys)[1], tf.shape(queries)[1]
-
-        values = tf.reshape(values, (N, value_len, self.heads, self.head_dim))
-        keys = tf.reshape(keys, (N, key_len, self.heads, self.head_dim))
-        queries = tf.reshape(queries, (N, query_len, self.heads, self.head_dim))
-
-        values = self.values(values)
-        keys = self.keys(keys)
-        queries = self.queries(queries)
-
-        score = tf.einsum("nqhd,nkhd->nhqk", queries, keys)
-        if mask is not None:
-            score *= mask
-
-        attention_weights = tf.nn.softmax(score / (self.embed_size ** (1 / 2)), axis=3)
-        out = tf.einsum("nhql,nlhd->nqhd", attention_weights, values)
-        out = tf.reshape(out, (N, query_len, self.heads * self.head_dim))
-        out = self.fc_out(out)
-        return out
-
-def create_positional_encoding(max_seq_len, d_model):
-    logger.info("Generating positional encoding for max_seq_len %d and d_model %d.", max_seq_len, d_model)
-
-    pos = tf.range(max_seq_len, dtype=tf.float32)[:, tf.newaxis]
-    div_term = tf.exp(tf.range(0, d_model, 2, dtype=tf.float32) * -(tf.math.log(10000.0) / d_model))
-    sinusoidal_input = tf.matmul(pos, div_term[tf.newaxis, :])
-    sines = tf.sin(sinusoidal_input)
-    cosines = tf.cos(sinusoidal_input)
-    pos_encoding = tf.concat([sines, cosines], axis=-1)
-    logger.info("Generated positional encoding with shape %s.", str(pos_encoding.shape))
-
-    return pos_encoding
-class TransformerBlock(Layer):
-
-    def __init__(self, embed_size, heads, dropout, forward_expansion):
-        super(TransformerBlock, self).__init__()
-        logger.info("Initializing TransformerBlock with embed_size %d, heads %d, dropout %f, forward_expansion %d.", embed_size, heads, dropout, forward_expansion)
+        optimizer = self.config.get('optimizer', 'adam')
+        loss = self.config.get('loss', 'mae')
+        self.model.compile(optimizer=optimizer, loss=loss)
         
-        self.attention = MultiHeadSelfAttention(embed_size, heads)
-        self.norm1 = LayerNormalization(epsilon=1e-6)
-        self.norm2 = LayerNormalization(epsilon=1e-6)
-        
-        self.feed_forward = tf.keras.Sequential([
-            Dense(forward_expansion * embed_size, activation="relu"),
-            Dense(embed_size),
-        ])
-        
-        self.dropout = Dropout(dropout)
+        logger.info("WaveNet model compiled successfully.")
+        self.model.summary()
 
-    def call(self, value, key, query, mask):
-        logger.info("Calling TransformerBlock with value shape %s, key shape %s, query shape %s.", str(value.shape), str(key.shape), str(query.shape))
+    def train_model(self, epochs=100, batch_size=32, early_stopping=True, patience=10, val_split=0.2):
+        logger.info(f"Training the WaveNet model for {epochs} epochs with batch size of {batch_size}...")
         
-        attention = self.attention(value, key, query, mask)
-        x = self.norm1(attention + query)
-        x = self.dropout(x)
+        callbacks = []
+        if early_stopping:
+            es_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience)
+            callbacks.append(es_callback)
         
-        forward = self.feed_forward(x)
-        out = self.norm2(forward + x)
-        out = self.dropout(out)
-        
-        return out
+        self.history = self.model.fit(
+            self.X_train, 
+            self.y_train, 
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_split=val_split,
+            callbacks=callbacks
+        )
+        logger.info("Training completed.")
 
 class SOA_TRANSFORMER(BaseModel_DL_SOA):
+    class TransformerBlock(Layer):
+        def __init__(self, embed_size, heads, dropout, forward_expansion):
+            super().__init__()
+            logger.info("Initializing TransformerBlock with embed_size %d, heads %d, dropout %f, forward_expansion %d.", embed_size, heads, dropout, forward_expansion)
+            
+            self.attention = SOA_TRANSFORMER.MultiHeadSelfAttention(embed_size, heads)
+            self.norm1 = LayerNormalization(epsilon=1e-6)
+            self.norm2 = LayerNormalization(epsilon=1e-6)
+            
+            self.feed_forward = tf.keras.Sequential([
+                Dense(forward_expansion * embed_size, activation="relu"),
+                Dense(embed_size),
+            ])
+            
+            self.dropout = Dropout(dropout)
+
+        def call(self, value, key, query, mask):
+            logger.info("Calling TransformerBlock with value shape %s, key shape %s, query shape %s.", str(value.shape), str(key.shape), str(query.shape))
+            
+            attention = self.attention(value, key, query, mask)
+            x = self.norm1(attention + query)
+            x = self.dropout(x)
+            
+            forward = self.feed_forward(x)
+            out = self.norm2(forward + x)
+            out = self.dropout(out)
+            
+            return out
+
+    class MultiHeadSelfAttention(Layer):
+        def __init__(self, embed_size, heads):
+            super().__init__()
+            self.embed_size = embed_size
+            self.heads = heads
+            self.head_dim = embed_size // heads
+
+            assert (
+                self.head_dim * heads == embed_size
+            ), "Embedding size needs to be divisible by heads"
+
+            logger.info("Initializing MultiHeadSelfAttention with embed_size %d and heads %d.", embed_size, heads)
+            
+            self.values = Dense(self.head_dim, activation="linear")
+            self.keys = Dense(self.head_dim, activation="linear")
+            self.queries = Dense(self.head_dim, activation="linear")
+            self.fc_out = Dense(embed_size, activation="linear")
+
+        def call(self, values, keys, queries, mask):
+            logger.info("Calling MultiHeadSelfAttention with values shape %s, keys shape %s, queries shape %s", str(values.shape), str(keys.shape), str(queries.shape))
+            
+            N = tf.shape(queries)[0]
+            value_len, key_len, query_len = tf.shape(values)[1], tf.shape(keys)[1], tf.shape(queries)[1]
+
+            values = tf.reshape(values, (N, value_len, self.heads, self.head_dim))
+            keys = tf.reshape(keys, (N, key_len, self.heads, self.head_dim))
+            queries = tf.reshape(queries, (N, query_len, self.heads, self.head_dim))
+
+            values = self.values(values)
+            keys = self.keys(keys)
+            queries = self.queries(queries)
+
+            score = tf.einsum("nqhd,nkhd->nhqk", queries, keys)
+            if mask is not None:
+                score *= mask
+
+            attention_weights = tf.nn.softmax(score / (self.embed_size ** (1 / 2)), axis=3)
+            out = tf.einsum("nhql,nlhd->nqhd", attention_weights, values)
+            out = tf.reshape(out, (N, query_len, self.heads * self.head_dim))
+            out = self.fc_out(out)
+            return out
+
     def __init__(self, model_type, data_preprocessor, config):
         super(SOA_TRANSFORMER, self).__init__(model_type, data_preprocessor, config)
         self._initialize_model()
     
+    def create_positional_encoding(self, max_seq_len, d_model):
+        logger.info("Generating positional encoding for max_seq_len %d and d_model %d.", max_seq_len, d_model)
+
+        pos = tf.range(max_seq_len, dtype=tf.float32)[:, tf.newaxis]
+        div_term = tf.exp(tf.range(0, d_model, 2, dtype=tf.float32) * -(tf.math.log(10000.0) / d_model))
+        sinusoidal_input = tf.matmul(pos, div_term[tf.newaxis, :])
+        sines = tf.sin(sinusoidal_input)
+        cosines = tf.cos(sinusoidal_input)
+        pos_encoding = tf.concat([sines, cosines], axis=-1)
+        logger.info("Generated positional encoding with shape %s.", str(pos_encoding.shape))
+
+        return pos_encoding
+
     def _initialize_model(self):
         inputs = Input(shape=self.config['input_shape'])
 
@@ -735,12 +732,12 @@ class SOA_TRANSFORMER(BaseModel_DL_SOA):
         x = Dense(embed_size)(inputs)
         logger.info("Added embedding layer with shape: %s", str(x.shape))
 
-        positional_encoding = create_positional_encoding(self.config['input_shape'][0], embed_size)
+        positional_encoding = self.create_positional_encoding(self.config['input_shape'][0], embed_size)
         x += positional_encoding
         logger.info("Added positional encoding to the model")
 
         for i in range(num_layers):
-            x = TransformerBlock(embed_size, heads, dropout, forward_expansion)(x, x, x, None)
+            x = SOA_TRANSFORMER.TransformerBlock(embed_size, heads, dropout, forward_expansion)(x, x, x, None)
             logger.info("Added Transformer block %d/%d", i+1, num_layers)
 
         x = GlobalAveragePooling1D()(x)
@@ -770,15 +767,9 @@ class SOA_TRANSFORMER(BaseModel_DL_SOA):
         )
         logger.info("Training completed.")
 
-    def save(self, path):
-        self.model.save(path)
-
-
-
-
 
 models = {
-    'TCN': {
+    'SOA_TCN': {
         'class': SOA_TCN,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
@@ -799,7 +790,7 @@ models = {
         },
         'skip': False
     },
-    'NBEATS': {
+    'SOA_NBEATS': {
         'class': SOA_NBEATS,
         'config': {
             'lookback': 1,  # This should be 10
@@ -821,7 +812,7 @@ models = {
         },
         'skip': False
     },
-    'WAVENET': {
+    'SOA_WAVENET': {
         'class': SOA_WAVENET,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
@@ -835,7 +826,7 @@ models = {
         },
         'skip': False
     },
-    'LSTNET': {
+    'SOA_LSTNET': {
         'class': SOA_LSTNET,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
@@ -849,7 +840,7 @@ models = {
         },
         'skip': False
     },
-    'TRANSFORMER': {
+    'SOA_TRANSFORMER': {
         'class': SOA_TRANSFORMER,
         'config': {
             'input_shape': (data_preprocessor.X_train_seq.shape[1], data_preprocessor.X_train_seq.shape[2]),
@@ -892,14 +883,14 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
         model.train_model(epochs=100, batch_size=32)
         model.make_predictions()
         evaluation_df = model.evaluate_model()
-        # Generate a unique model_id for this run
-        #model_id = model.generate_model_id()
-        #model.save_predictions(model_id, subfolder='model_state_of_art', overwrite=False)
-        #model.save_accuracy(model_id, subfolder='model_state_of_art', overwrite=False)
-        print(f"{name} Model Evaluation:\n", evaluation_df)
-        model.plot_history(plot=True)
-        model.plot_predictions(plot=False)
-        #model.save_model_to_folder(version="2")
+        display(evaluation_df)
+        model.plot_history(plot=False)
+        model.plot_predictions(plot=True)
+
+        model_id = model.generate_model_id()
+        model.save_predictions(model_id, subfolder='model_state_of_art', overwrite=False)
+        model.save_accuracy(model_id, subfolder='model_state_of_art', overwrite=False)
+        model.save_model_to_folder(version="1")
 
 
 
@@ -907,7 +898,7 @@ def run_models(models, data_preprocessor, run_only=None, skip=None):
 #run_models(models, data_preprocessor)
 
 # Run only specific models
-run_models(models, data_preprocessor, run_only=['TCN'])
+run_models(models, data_preprocessor, run_only=['SOA_NBEATS'])
 
 # Skip specific models
 #run_models(models, data_preprocessor, skip=['NBEATS'])
