@@ -1,3 +1,5 @@
 Date Run,Model Class,Model ID,Config,index,RMSE,R2 Score,MAE,Explained Variance
 2023-11-04 16:57:52,LSTM_,DL_LSTM_84d4b5,"{""input_shape"": [10, 5], ""num_lstm_layers"": 2, ""lstm_units"": [50, 30], ""dropout"": 0.2, ""dense_units"": [1], ""optimizer"": ""adam""}",Train,2895.2775908540075,0.9469935347195475,1019.3181115902595,0.9511957765776158
 2023-11-04 16:57:52,LSTM_,DL_LSTM_84d4b5,"{""input_shape"": [10, 5], ""num_lstm_layers"": 2, ""lstm_units"": [50, 30], ""dropout"": 0.2, ""dense_units"": [1], ""optimizer"": ""adam""}",Test,6271.413082185569,0.7267441000615464,4546.080440669238,0.8643457168923736
+2023-11-05 01:39:08,LSTM_,DL_LSTM_84d4b5,"{""input_shape"": [10, 5], ""num_lstm_layers"": 2, ""lstm_units"": [50, 30], ""dropout"": 0.2, ""dense_units"": [1], ""optimizer"": ""adam""}",Train,2136.94525718878,0.9711877518374425,823.4521993536814,0.9721584488433466
+2023-11-05 01:39:08,LSTM_,DL_LSTM_84d4b5,"{""input_shape"": [10, 5], ""num_lstm_layers"": 2, ""lstm_units"": [50, 30], ""dropout"": 0.2, ""dense_units"": [1], ""optimizer"": ""adam""}",Test,4632.248352252043,0.8503548888075039,3183.701629602857,0.9097473277880609
