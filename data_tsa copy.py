@@ -159,6 +159,12 @@ class TimeSeriesAnalysis:
             'Guidance': guidance
         }
 
+
+
+
+
+
+
     def analyze_decomposition(self, decomposition_result):
         """
         Analyze the time series decomposition results and provide guidance.
