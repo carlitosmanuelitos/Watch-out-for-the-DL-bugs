@@ -1,5 +1,31 @@
 # Watch-out-for-the-DL-bugs
+# Cryptocurrency Analysis and Forecasting Framework
 
+This comprehensive framework provides a robust set of tools for cryptocurrency data analysis and forecasting. It integrates a wide array of functionalities, from data retrieval and preprocessing to sophisticated modeling techniques, both in traditional machine learning and state-of-the-art deep learning.
+
+## Overview of Modules
+
+- **`data_fetcher.py`**: Retrieves historical cryptocurrency data from various sources for analysis.
+- **`data_analytics.py`**: Offers advanced analytics on cryptocurrency data, such as volatility analysis and time series aggregation.
+- **`data_visuals.py`**: Generates insightful visualizations to interpret market trends and various technical indicators.
+- **`data_eng.py`**: Conducts feature engineering to extract and construct meaningful features from time series data.
+- **`data_preprocessor.py`**: Prepares data for modeling by performing tasks like normalization and sequence generation.
+- **`model_ML.py`**: Implements a variety of machine learning models for predictive analysis.
+- **`model_DL.py`**: Constructs deep learning models, specifically designed for time series forecasting.
+- **`model_SOA.py`**: Incorporates state-of-the-art modeling techniques for cutting-edge predictive performance.
+- **`models_grid-search.py`**: Executes hyperparameter tuning for recurrent neural network models, utilizing Bayesian Optimization to find the optimal model configurations. 
+
+Each module is crafted to provide an intuitive and streamlined workflow for performing detailed cryptocurrency analysis and building accurate forecast models.
+
+## Getting Started
+
+Begin by setting up your environment with the required Python libraries, then dive into each module for detailed instructions on leveraging the tools provided for your analysis and forecasting needs.
+
+## Contributions and Feedback
+
+Contributions to enhance the framework are highly encouraged. Please submit issues or pull requests with your suggestions and improvements.
+
+# ---------------------------------------------------------------------------------------------------------------------
 
 ## `data_fetcher.py` - Cryptocurrency Data Retrieval and Formatting
 
@@ -72,11 +98,11 @@ Key features of this module include:
 ### Usage Example
 ```python
 # Uncomment the line below to run the analytics and retrieve all-time records.
-# analytics, all_time_high, all_time_low, yearly_data, monthly_data, weekly_data = run_data_analytics(True)
+analytics, all_time_high, all_time_low, yearly_data, monthly_data, weekly_data = run_data_analytics(True)
 
 # After running, you can access the results as follows:
-# print(f"All Time High: {all_time_high} on {all_time_high_date}")
-# print(f"All Time Low: {all_time_low} on {all_time_low_date}")
+print(f"All Time High: {all_time_high} on {all_time_high_date}")
+print(f"All Time Low: {all_time_low} on {all_time_low_date}")
 ```
 
 ## `data_visuals.py` - Visualization of Cryptocurrency Analytics
@@ -113,10 +139,10 @@ Key features of this module include:
 ### Usage Example
 ```python
 # Uncomment the line below to run the visualizations.
-# crypto_analytics, candle, trend, bollinger_bands, macd, rsi, fibonacci_retracement, volume = run_data_visuals(True)
+crypto_analytics, candle, trend, bollinger_bands, macd, rsi, fibonacci_retracement, volume = run_data_visuals(True)
 
 # To view a specific visualization in a Jupyter notebook, use the corresponding plotting method, e.g.:
-# macd_plot = crypto_analytics.plot_macd_bokeh(display=False)  # Set display to False to prevent auto-showing the plot
+macd_plot = crypto_analytics.plot_macd_bokeh(display=False)  # Set display to False to prevent auto-showing the plot
 ```
 
 ## `data_eng.py` - Feature Engineering for Time Series Data
@@ -168,9 +194,9 @@ config = {
 }
 
 # Uncomment the line below to execute the feature engineering process.
-# data_eng = run_feature_engineering(True, config)
-# After running, you can display the engineered DataFrame using:
-# display(data_eng)
+data_eng = run_feature_engineering(True, config)
+After running, you can display the engineered DataFrame using:
+display(data_eng)
 ```
 
 ## `data_preprocessor.py` - Time Series Data Preprocessing
@@ -353,5 +379,84 @@ models = {
 run_models(models)
 ```
 
+
+# `model_SOA.py` - State-of-the-Art Deep Learning Models
+
+This script is dedicated to the definition, training, and evaluation of state-of-the-art deep learning models for time series forecasting. It utilizes advanced neural network architectures like TCN (Temporal Convolutional Networks), N-BEATS, LSTNet, WaveNet, and Transformers, optimized for the task of predicting cryptocurrency prices.
+
+## Key Components
+
+- **BaseModel_DL_SOA**: Abstract base class for defining common functionalities across all models.
+- **SOA_TCN**: Class for Temporal Convolutional Network model.
+- **SOA_NBEATS**: Class for N-BEATS model implementation.
+- **SOA_LSTNET**: Class for LSTNet (Long Short-Term Memory Network) model.
+- **SOA_WAVENET**: Class for WaveNet model, a deep generative model of audio data.
+- **SOA_TRANSFORMER**: Class for the Transformer model, leveraging self-attention mechanisms.
+
+## Features
+
+- Utilizes Keras and TensorFlow for building and training models.
+- Supports various data preprocessing techniques like normalization and sequence generation.
+- Implements custom training routines with callbacks such as early stopping.
+- Provides functionalities for model evaluation, prediction plotting, and history visualization.
+- Includes methods for saving model configurations, predictions, and accuracy metrics.
+- Allows for saving and loading of trained models for future use or transfer learning.
+
+## Usage
+
+To run the models, initialize the `data_preprocessor` with your dataset and specify the configurations for each model. Then, call the `run_models` function with the desired parameters.
+
+```python
+# Define model configurations
+models = {
+    'NBEATS': {
+        'class': NBEATS,  # Replace with your actual class
+        'config': {
+            # Model-specific configurations...
+        },
+        'skip': False
+    },
+    # Add other models and their configurations here...
+}
+
+# Run the models and evaluate their performance
+run_models(models)
+```
+
+
+# `models_grid-search.py` - Hyperparameter Tuning for RNN Models
+
+The script is designed to perform hyperparameter optimization for various RNN architectures using Bayesian Optimization. It supports LSTM, BiLSTM, GRU, BiGRU, SimpleRNN, StackedRNN, AttentionLSTM, and CNNLSTM models, tuning parameters such as the number of units, activation functions, dropout rates, and optimizers.
+
+## Key Features
+
+- Integrates with `kerastuner` to apply hyperparameter optimization.
+- Leverages TensorFlow and Keras for model construction.
+- Supports a range of RNN architectures for time series forecasting.
+- Incorporates advanced features like Bidirectional layers and Attention mechanisms.
+- Uses callbacks like EarlyStopping and ReduceLROnPlateau for efficient training.
+- Optimizes models based on validation loss.
+
+## Usage
+
+To start the hyperparameter tuning process, define the RNN architecture you want to optimize and initiate the `BayesianOptimization` tuner with the `EnhancedRNNHyperModel` class.
+
+```python
+# Example of running Bayesian Optimization for CNNLSTM model
+model_type = 'CNNLSTM'
+tuner = BayesianOptimization(
+    hypermodel=EnhancedRNNHyperModel(data_preprocessor, model_type),
+    objective='val_loss',
+    max_trials=50,
+    directory='bayesian_optimization',
+    project_name=f'{model_type}',
+    overwrite=False
+)
+tuner.search(
+    data_preprocessor.X_train_seq, data_preprocessor.y_train_seq, 
+    epochs=20, validation_split=0.2, 
+    callbacks=[early_stopping_callback, lr_schedule]
+)
+```
 
 
