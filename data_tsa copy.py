@@ -416,11 +416,11 @@ tsa = TimeSeriesAnalysis(btc_data, target='Close')
 print("Diagnostics for Original Series:")
 original_diagnostics = tsa.diagnostic_check()
     # Make the series stationary and update the data attribute
-stationary_series = tsa.make_stationary(method='log')
-tsa.data[tsa.target] = stationary_series
+#stationary_series = tsa.make_stationary(method='log')
+#tsa.data[tsa.target] = stationary_series
 
-tsa.visualize_stationarity(show_plot=True)
+#tsa.visualize_stationarity(show_plot=True)
     # Create a new instance with the stationary series
-tsa_stationary = TimeSeriesAnalysis(pd.DataFrame({tsa.target: stationary_series}), target=tsa.target)
-print("\nDiagnostics for Stationary Series:")
-stationary_diagnostics = tsa_stationary.diagnostic_check()
+#tsa_stationary = TimeSeriesAnalysis(pd.DataFrame({tsa.target: stationary_series}), target=tsa.target)
+#print("\nDiagnostics for Stationary Series:")
+#stationary_diagnostics = tsa_stationary.diagnostic_check()
