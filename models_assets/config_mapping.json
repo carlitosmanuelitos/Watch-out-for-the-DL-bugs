@@ -183,5 +183,92 @@
             ],
             "optimizer": "adam"
         }
+    },
+    "DL_BiGRU_6be28d": {
+        "Model Class": "Bi_GRU",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 2,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam"
+        }
+    },
+    "DL_LSTM_v2_84d4b5": {
+        "Model Class": "LSTM_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 2,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    },
+    "DL_BiLSTM_v2_e0952f": {
+        "Model Class": "Bi_LSTM",
+        "Config": {
+            "num_lstm_layers": 2,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    },
+    "DL_GRU_v2_d5ae1c": {
+        "Model Class": "GRU_",
+        "Config": {
+            "num_gru_layers": 2,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    },
+    "DL_LSTM_v2_5dcde3": {
+        "Model Class": "LSTM_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 1,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
     }
 }

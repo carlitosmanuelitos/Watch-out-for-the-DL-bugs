@@ -74,7 +74,6 @@ class BaseModel_TS:
 
 
 
-
     def update_config_mapping(self, folder_name="models_assets"):
         """
         Update the configuration mapping with model_id.
@@ -178,4 +177,176 @@ class BaseModel_TS:
         else:
             df.to_csv(filepath, mode='a', header=False, index=False)
         self.logging.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
+
+
+
+
+
+
+
+
+class Enhanced_AR(BaseModel_TS):
+    """
+    Initialize the AR model.
+    """
+    def __init__(self, data_preprocessor, config, plot=True):
+        super().__init__(data_preprocessor, config, plot)
+        self._initialize_model()
+
+    def _initialize_model(self):
+        """Initialize AR model."""
+        self.model = AutoReg(self.y_train, lags=self.config['lags'])
+        self.logger.info("AR model initialized.")
+
+    def train_model(self):
+        """Train the AR model."""
+        try:
+            self.model_result = self.model.fit()
+            self.logger.info("AR model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            start = len(self.y_train)
+            end = start + len(self.y_test) - 1
+            self.train_predictions = self.model_result.predict(start=0, end=start-1)
+            self.test_predictions = self.model_result.predict(start=start, end=end)
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
+class Enhanced_ARIMA(BaseModel_TS):
+    """
+    Initialize the ARIMA model.
+    """
+    def __init__(self, data_preprocessor, config, plot=True):
+        super().__init__(data_preprocessor, config, plot)
+        self._initialize_model()
+
+    def _initialize_model(self):
+        """Initialize ARIMA model."""
+        self.model = ARIMA(self.y_train, order=self.config['order'])
+        self.logger.info("ARIMA model initialized.")
+
+    def train_model(self):
+        """Train the ARIMA model."""
+        try:
+            self.model_result = self.model.fit()
+            self.logger.info("ARIMA model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            start = len(self.y_train)
+            end = start + len(self.y_test) - 1
+            self.train_predictions = self.model_result.predict(start=0, end=start-1, typ='levels')
+            self.test_predictions = self.model_result.predict(start=start, end=end, typ='levels')
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
+class Enhanced_SARIMA(BaseModel_TS):
+    """
+    Initialize the SARIMA model.
+    """
+    def __init__(self, data_preprocessor, config, plot=True):
+        super().__init__(data_preprocessor, config, plot)
+        self._initialize_model()
+
+    def _initialize_model(self):
+        """Initialize SARIMA model."""
+        self.model = SARIMAX(self.y_train, order=self.config['order'], seasonal_order=self.config['seasonal_order'])
+        self.logger.info("SARIMA model initialized.")
+
+    def train_model(self):
+        """Train the SARIMA model."""
+        try:
+            self.model_result = self.model.fit(disp=False)
+            self.logger.info("SARIMA model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            start = len(self.y_train)
+            end = start + len(self.y_test) - 1
+            self.train_predictions = self.model_result.predict(start=0, end=start-1, typ='levels')
+            self.test_predictions = self.model_result.predict(start=start, end=end, typ='levels')
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
+class Enhanced_ARIMAX(BaseModel_TS):
+    """
+    Initialize the ARIMAX model.
+    """
+    def __init__(self, data_preprocessor, config, plot=True):
+        super().__init__(data_preprocessor, config, plot)
+        self.X_train = data_preprocessor.X_train
+        self.X_test = data_preprocessor.X_test
+        self._initialize_model()
+
+    def _initialize_model(self):
+        """Initialize ARIMAX model."""
+        self.model = ARIMA(self.y_train, exog=self.X_train, order=self.config['order'])
+        self.logger.info("ARIMAX model initialized.")
+
+    def train_model(self):
+        """Train the ARIMAX model."""
+        try:
+            self.model_result = self.model.fit()
+            self.logger.info("ARIMAX model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            start = len(self.y_train)
+            end = start + len(self.y_test) - 1
+            self.train_predictions = self.model_result.predict(start=0, end=start-1, exog=self.X_train, typ='levels')
+            self.test_predictions = self.model_result.predict(start=start, end=end, exog=self.X_test, typ='levels')
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
+class Enhanced_SARIMAX(BaseModel_TS):
+    """
+    Initialize the SARIMAX model.
+    """
+    def __init__(self, data_preprocessor, config, plot=True):
+        super().__init__(data_preprocessor, config, plot)
+        self.X_train = data_preprocessor.X_train
+        self.X_test = data_preprocessor.X_test
+        self._initialize_model()
+ 
+    def _initialize_model(self):
+        """Initialize SARIMAX model."""
+        self.model = SARIMAX(self.y_train, exog=self.X_train, order=self.config['order'], seasonal_order=self.config['seasonal_order'])
+        self.logger.info("SARIMAX model initialized.")
+
+    def train_model(self):
+        """Train the SARIMAX model."""
+        try:
+            self.model_result = self.model.fit(disp=False)
+            self.logger.info("SARIMAX model trained successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while training the model: {str(e)}")
+
+    def make_predictions(self):
+        """Make predictions using the trained model for training and test sets."""
+        try:
+            start = len(self.y_train)
+            end = start + len(self.y_test) - 1
+            self.train_predictions = self.model_result.predict(start=0, end=start-1, exog=self.X_train, typ='levels')
+            self.test_predictions = self.model_result.predict(start=start, end=end, exog=self.X_test, typ='levels')
+            self.logger.info("Predictions made successfully.")
+        except Exception as e:
+            self.logger.error(f"Error occurred while making predictions: {str(e)}")
+
 

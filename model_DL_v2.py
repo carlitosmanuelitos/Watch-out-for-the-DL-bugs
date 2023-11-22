@@ -13,26 +13,31 @@ from bokeh.layouts import column, row
 from bokeh.io import curdoc, export_png
 from bokeh.models.widgets import CheckboxGroup
 from bokeh.themes import Theme
+
 # Machine Learning Libraries
 from sklearn.model_selection import train_test_split, TimeSeriesSplit, cross_val_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, QuantileTransformer, PowerTransformer
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, explained_variance_score, accuracy_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, explained_variance_score
 
 # Deep Learning Libraries
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import Sequential, Model
-from tensorflow.keras.layers import (Dense, Dropout, LSTM, TimeDistributed, Conv1D, MaxPooling1D, Flatten,
-                                    ConvLSTM2D, BatchNormalization, GRU, Bidirectional, Attention, Input,
-                                    Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, Lambda, LayerNormalization, 
-                                    SimpleRNN, Layer, Multiply, Add, Activation)
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Dense, Dropout, LSTM, TimeDistributed, Conv1D, MaxPooling1D, Flatten
+from tensorflow.keras.layers import ConvLSTM2D, BatchNormalization, GRU, Bidirectional, LayerNormalization
+from tensorflow.keras.layers import SimpleRNN, Multiply, Add, Activation, Input, Attention
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras import regularizers
 from tensorflow.keras.regularizers import l1, l2, l1_l2
-from tcn import TCN
+
+# Custom and third-party libraries
+from tcn import TCN  # Make sure you have the 'keras-tcn' package installed.
 from kerasbeats import NBeatsModel
+
+# Time Series Analysis Library (Statsmodels)
 from statsmodels.tsa.stattools import acf, pacf
+
 
 
 # Other settings
@@ -424,9 +429,12 @@ class LSTM_(BaseModelLSTM):
             units = self.config['lstm_units'][i]
             return_sequences = True if i < self.config['num_lstm_layers'] - 1 else False
             self.model.add(LSTM(units, return_sequences=return_sequences))
+            self.model.add(BatchNormalization())  # Add BatchNormalization layer
             self.model.add(Dropout(self.config['dropout']))
+
         for units in self.config['dense_units']:
             self.model.add(Dense(units))
+
         self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 
 class GRU_(BaseModelLSTM):
@@ -435,12 +443,17 @@ class GRU_(BaseModelLSTM):
         for i in range(self.config['num_gru_layers']):
             units = self.config['gru_units'][i]
             return_sequences = True if i < self.config['num_gru_layers'] - 1 else False
-            self.model.add(GRU(units, return_sequences=return_sequences))
+            self.model.add(GRU(units, return_sequences=return_sequences, 
+                               kernel_regularizer=l1_l2(l1=1e-5, l2=1e-4),  # L1 and L2 regularization
+                               recurrent_regularizer=l1_l2(l1=1e-5, l2=1e-4),
+                               bias_regularizer=l1_l2(l1=1e-5, l2=1e-4)))
+            self.model.add(BatchNormalization())  # Add BatchNormalization layer
             self.model.add(Dropout(self.config['dropout']))
+
         for units in self.config['dense_units']:
             self.model.add(Dense(units))
-        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 class Bi_LSTM(BaseModelLSTM):
     def _initialize_model(self):
         self.model = Sequential()
@@ -601,11 +614,11 @@ class CNN_LSTM(BaseModelLSTM):
 
 
 models = {
-    'DL_LSTM': {
+    'DL_LSTM_v2': {
         'class': LSTM_,  # Replace with your actual class
         'config': {
             'input_shape': (10, 5),
-            'num_lstm_layers': 2,
+            'num_lstm_layers': 1,
             'lstm_units': [50, 30],
             'dropout': 0.2,
             'dense_units': [1],
@@ -613,10 +626,10 @@ models = {
         },
         'skip': False
     },
-    'DL_BiLSTM': {
+    'DL_BiLSTM_v2': {
         'class': Bi_LSTM,  # Replace with your actual class
         'config': {
-            'num_lstm_layers': 2,
+            'num_lstm_layers': 1,
             'lstm_units': [50, 30],
             'dropout': 0.2,
             'dense_units': [1],
@@ -624,7 +637,7 @@ models = {
         },
         'skip': False
     },
-    'DL_GRU': {
+    'DL_GRU_v2': {
         'class': GRU_,  # Replace with your actual class
         'config': {
             'num_gru_layers': 2,
@@ -701,7 +714,6 @@ models = {
 }
 
 
-
 models1 = {
     'LSTM_Original': {
         'class': LSTM,
@@ -754,7 +766,8 @@ models1 = {
 }
 
 
-def run_models(models, run_only=None, skip=None):
+def run_models(models, run_only=None, skip
+               =None):
     for name, model_info in models.items():
         if run_only and name not in run_only:
             continue
@@ -781,13 +794,12 @@ def run_models(models, run_only=None, skip=None):
         model.save_model_to_folder(version="1")
 
 
-
-
 # Run all models
 #run_models(models)
-run_models(models, run_only=['DL_BiGRU'])
-#run_models(models, skip=['SimpleRNN'])
+#run_models(models, run_only=['DL_LSTM_v2', 'DL_GRU_v2'])
+run_models(models, run_only=['DL_GRU_v2'])
 
+#run_models(models, skip=['SimpleRNN'])
 
 
 

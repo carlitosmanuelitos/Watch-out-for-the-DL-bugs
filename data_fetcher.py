@@ -169,3 +169,5 @@ tickers = ['BTC','ETH','ADA']
 crypto_data_obj, all_data, all_display_data = run_data_fetcher(True, tickers, get_display_data=True, overwrite=False)
 btc_data = all_data['BTC']
 btc_display_data = all_display_data.loc['BTC']
+
+
