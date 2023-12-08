@@ -496,10 +496,6 @@ class Bi_GRU(BaseModelLSTM):
         self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 
 class Simple_RNN(BaseModelLSTM):
-    """
-    This class is an implementation of a Simple RNN model for sequence prediction.
-    It inherits from the BaseModelLSTM class and overrides the _initialize_model method.
-    """
     def _initialize_model(self):
         self.model = Sequential()
         additional_params = {
