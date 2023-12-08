@@ -785,7 +785,7 @@ def run_models(models, run_only=None, skip=None):
 
 # Run all models
 #run_models(models)
-run_models(models, run_only=['DL_BiGRU'])
+run_models(models, run_only=['DL_SimpleRNN', 'DL_StackedRNN'])
 #run_models(models, skip=['SimpleRNN'])
 
 

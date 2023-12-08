@@ -414,82 +414,99 @@ class BaseModelLSTM():
             df.to_csv(filepath, mode='a', header=False, index=False)
         self.logging.info(f"Accuracy metrics saved to {filepath}" if overwrite or not os.path.exists(filepath) else f"Accuracy metrics appended to {filepath}")
 
-
 class LSTM_(BaseModelLSTM):
     def _initialize_model(self):
         self.model = Sequential()
         additional_params = {
             'input_shape': self.config['input_shape'],
             'num_lstm_layers': self.config['num_lstm_layers'],
-            'lstm_units': self.config['lstm_units']
+            'lstm_units': self.config['lstm_units'],
+            'reg_lambda': self.config.get('reg_lambda', 0.0)
         }
         self.params.update(additional_params)
-        
+
         for i in range(self.config['num_lstm_layers']):
             units = self.config['lstm_units'][i]
             return_sequences = True if i < self.config['num_lstm_layers'] - 1 else False
-            self.model.add(LSTM(units, return_sequences=return_sequences))
-            self.model.add(BatchNormalization())  # Add BatchNormalization layer
+            self.model.add(LSTM(units, return_sequences=return_sequences,
+                                kernel_regularizer=l1_l2(l1=additional_params['reg_lambda'], 
+                                                         l2=additional_params['reg_lambda'])))
+            self.model.add(BatchNormalization())
             self.model.add(Dropout(self.config['dropout']))
-
         for units in self.config['dense_units']:
             self.model.add(Dense(units))
-
         self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 
 class GRU_(BaseModelLSTM):
     def _initialize_model(self):
         self.model = Sequential()
-        for i in range(self.config['num_gru_layers']):
-            units = self.config['gru_units'][i]
-            return_sequences = True if i < self.config['num_gru_layers'] - 1 else False
-            self.model.add(GRU(units, return_sequences=return_sequences, 
-                               kernel_regularizer=l1_l2(l1=1e-5, l2=1e-4),  # L1 and L2 regularization
-                               recurrent_regularizer=l1_l2(l1=1e-5, l2=1e-4),
-                               bias_regularizer=l1_l2(l1=1e-5, l2=1e-4)))
-            self.model.add(BatchNormalization())  # Add BatchNormalization layer
-            self.model.add(Dropout(self.config['dropout']))
-
-        for units in self.config['dense_units']:
-            self.model.add(Dense(units))
-
-        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
-class Bi_LSTM(BaseModelLSTM):
-    def _initialize_model(self):
-        self.model = Sequential()
-        for i in range(self.config['num_lstm_layers']):
-            units = self.config['lstm_units'][i]
-            return_sequences = True if i < self.config['num_lstm_layers'] - 1 else False
-            self.model.add(Bidirectional(LSTM(units, return_sequences=return_sequences)))
-            self.model.add(Dropout(self.config['dropout']))
-        for units in self.config['dense_units']:
-            self.model.add(Dense(units))
-        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
-
-class Bi_GRU(BaseModelLSTM):
-    """
-    This class is an implementation of a bi-directional GRU model for sequence prediction.
-    It inherits from the BaseModelLSTM class and overrides the _initialize_model method.
-    """
-    def _initialize_model(self):
-        self.model = Sequential()
         additional_params = {
             'input_shape': self.config['input_shape'],
             'num_gru_layers': self.config['num_gru_layers'],
-            'gru_units': self.config['gru_units']
+            'gru_units': self.config['gru_units'],
+            'reg_lambda': self.config.get('reg_lambda', 0.0)
         }
         self.params.update(additional_params)
 
         for i in range(self.config['num_gru_layers']):
             units = self.config['gru_units'][i]
             return_sequences = True if i < self.config['num_gru_layers'] - 1 else False
-            self.model.add(Bidirectional(GRU(units, return_sequences=return_sequences)))
+            self.model.add(GRU(units, return_sequences=return_sequences,
+                               kernel_regularizer=l1_l2(l1=additional_params['reg_lambda'], 
+                                                         l2=additional_params['reg_lambda'])))
+            self.model.add(BatchNormalization())
+            self.model.add(Dropout(self.config['dropout']))
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class Bi_LSTM(BaseModelLSTM):
+    def _initialize_model(self):
+        self.model = Sequential()
+        additional_params = {
+            'input_shape': self.config['input_shape'],
+            'num_lstm_layers': self.config['num_lstm_layers'],
+            'lstm_units': self.config['lstm_units'],
+            'reg_lambda': self.config.get('reg_lambda', 0.0)
+        }
+        self.params.update(additional_params)
+
+        for i in range(additional_params['num_lstm_layers']):
+            units = additional_params['lstm_units'][i]
+            return_sequences = True if i < additional_params['num_lstm_layers'] - 1 else False
+            self.model.add(Bidirectional(LSTM(units, return_sequences=return_sequences,
+                                              kernel_regularizer=l1_l2(l1=additional_params['reg_lambda'], 
+                                                                       l2=additional_params['reg_lambda']))))
+            self.model.add(BatchNormalization())
+            self.model.add(Dropout(self.config['dropout']))
+        for units in self.config['dense_units']:
+            self.model.add(Dense(units))
+
+        self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
+
+class Bi_GRU(BaseModelLSTM):
+    def _initialize_model(self):
+        self.model = Sequential()
+        additional_params = {
+            'input_shape': self.config['input_shape'],
+            'num_gru_layers': self.config['num_gru_layers'],
+            'gru_units': self.config['gru_units'],
+            'reg_lambda': self.config.get('reg_lambda', 0.0)
+        }
+        self.params.update(additional_params)
+
+        for i in range(additional_params['num_gru_layers']):
+            units = additional_params['gru_units'][i]
+            return_sequences = True if i < additional_params['num_gru_layers'] - 1 else False
+            self.model.add(Bidirectional(GRU(units, return_sequences=return_sequences,
+                                             kernel_regularizer=l1_l2(l1=additional_params['reg_lambda'], 
+                                                                      l2=additional_params['reg_lambda']))))
+            self.model.add(BatchNormalization())
             self.model.add(Dropout(self.config['dropout']))
 
-        # If the last RNN layer returns sequences, you may need to flatten it
         if return_sequences:
             self.model.add(Flatten())
-        
+
         for units in self.config['dense_units']:
             self.model.add(Dense(units))
 
@@ -501,22 +518,23 @@ class Simple_RNN(BaseModelLSTM):
         additional_params = {
             'input_shape': self.config['input_shape'],
             'num_rnn_layers': self.config['num_rnn_layers'],
-            'rnn_units': self.config['rnn_units']
+            'rnn_units': self.config['rnn_units'],
+            'reg_lambda': self.config.get('reg_lambda', 0.0)
         }
         self.params.update(additional_params)
 
-        for i in range(self.config['num_rnn_layers']):
-            units = self.config['rnn_units'][i]
-            # Make sure to set return_sequences=False for the last layer
-            return_sequences = True if i < self.config['num_rnn_layers'] - 1 else False
-            self.model.add(SimpleRNN(units, return_sequences=return_sequences))
+        for i in range(additional_params['num_rnn_layers']):
+            units = additional_params['rnn_units'][i]
+            return_sequences = True if i < additional_params['num_rnn_layers'] - 1 else False
+            self.model.add(SimpleRNN(units, return_sequences=return_sequences,
+                                     kernel_regularizer=l1_l2(l1=additional_params['reg_lambda'], 
+                                                              l2=additional_params['reg_lambda'])))
+            self.model.add(BatchNormalization())
             self.model.add(Dropout(self.config['dropout']))
 
-        # Add Dense layers
         for units in self.config['dense_units']:
             self.model.add(Dense(units))
 
-        # Compile the model
         self.model.compile(optimizer=self.config['optimizer'], loss='mean_squared_error')
 
 class Stacked_RNN(BaseModelLSTM):
@@ -618,67 +636,91 @@ models = {
             'lstm_units': [50, 30],
             'dropout': 0.2,
             'dense_units': [1],
-            'optimizer': 'adam'
-        },
-        'skip': False
-    },
-    'DL_BiLSTM_v2': {
-        'class': Bi_LSTM,  # Replace with your actual class
-        'config': {
-            'num_lstm_layers': 1,
-            'lstm_units': [50, 30],
-            'dropout': 0.2,
-            'dense_units': [1],
-            'optimizer': 'adam'
+            'optimizer': 'adam',
+            'reg_lambda': 1e-6  # Example regularization strength
         },
         'skip': False
     },
     'DL_GRU_v2': {
         'class': GRU_,  # Replace with your actual class
         'config': {
-            'num_gru_layers': 2,
+            'input_shape': (10, 5),
+            'num_gru_layers': 1,
             'gru_units': [50, 30],
             'dropout': 0.2,
             'dense_units': [1],
-            'optimizer': 'adam'
+            'optimizer': 'adam',
+            'reg_lambda': 1e-6  # Example regularization strength
+
         },
         'skip': False
     },
-    'DL_BiGRU': {
+    'DL_BiLSTM_v2': {
+        'class': Bi_LSTM,  # Replace with your actual class
+        'config': {
+            'input_shape': (10, 5),            
+            'num_lstm_layers': 1,
+            'lstm_units': [50, 30],
+            'dropout': 0.2,
+            'dense_units': [1],
+            'optimizer': 'adam',
+            'reg_lambda': 0  # Example regularization strength
+
+        },
+        'skip': False
+    },
+    'DL_BiGRU_v2': {
         'class': Bi_GRU,  # Replace with your actual class
         'config': {
             'input_shape': (10, 5),
-            'num_gru_layers': 2,
+            'num_gru_layers': 1,
             'gru_units': [50, 30],
             'dense_units': [1],
             'dropout': 0.2,
-            'optimizer': 'adam'
+            'optimizer': 'adam',
+            'reg_lambda': 0  # Example regularization strength
+
         },
         'skip': False
     },
-    'DL_SimpleRNN': {  
+    'DL_SimpleRNN_v2': {  
         'class': Simple_RNN,  # Replace with your actual class
         'config': {
-            'input_shape': (10, 30),
-            'num_rnn_layers': 2,
+            'input_shape': (10, 5),
+            'num_rnn_layers': 1,
             'rnn_units': [50, 30],
             'dense_units': [1],
             'dropout': 0.2,
-            'optimizer': 'adam'
+            'optimizer': 'adam',
+            'reg_lambda': 0  # Example regularization strength
         },
         'skip': False
     },
-    'DL_StackedRNN': {
+    'DL_StackedRNN_v2': {
         'class': Stacked_RNN,  # Replace with your actual class
         'config': {
             'input_shape': (10, 5),
             'lstm_units': [50, 30],
-            'gru_units': [20],
+            'gru_units': [1],
             'dropout': 0.2,
             'dense_units': [1],
-            'optimizer': 'adam'
+            'optimizer': 'adam',
+            'reg_lambda': 1e-6  # Example regularization strength
         },
         'skip': False
+    },
+    'DL_StackedRNN_v3': {
+        'class': Stacked_RNN,  # Replace with your actual class
+        'config': {
+            'input_shape': (10, 5),  # Shape of the input data (e.g., sequence length, number of features)
+            'lstm_units': [50, 30],  # Number of units in each LSTM layer
+            'gru_units': [20],       # Number of units in each GRU layer
+            'dropout': 0.2,          # Dropout rate to prevent overfitting
+            'dense_units': [1],      # Number of units in the final Dense layer (usually 1 for regression tasks)
+            'optimizer': 'adam',     # Optimizer for training the model
+            'reg_lambda': 1e-6       # Regularization strength for L1 and L2 regularization
+        },
+        'skip': False              # Additional flag for process control, if needed
     },
     'DL_AttentionLSTM': {
         'class': Attention_LSTM,  # Replace with your actual class
@@ -793,7 +835,8 @@ def run_models(models, run_only=None, skip
 # Run all models
 #run_models(models)
 #run_models(models, run_only=['DL_LSTM_v2', 'DL_GRU_v2'])
-run_models(models, run_only=['DL_GRU_v2'])
+#run_models(models, run_only=['DL_BiLSTM_v2','DL_BiGRU_v2'])
+run_models(models, run_only=['DL_StackedRNN_v3'])
 
 #run_models(models, skip=['SimpleRNN'])
 

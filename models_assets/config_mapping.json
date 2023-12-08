@@ -270,5 +270,381 @@
             ],
             "optimizer": "adam"
         }
+    },
+    "DL_GRU_v2_70edbe": {
+        "Model Class": "GRU_",
+        "Config": {
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    },
+    "DL_GRU_v2_50dd28": {
+        "Model Class": "GRU_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    },
+    "DL_LSTM_v2_fcdc66": {
+        "Model Class": "LSTM_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 1,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 0.01
+        }
+    },
+    "DL_GRU_v2_f27305": {
+        "Model Class": "GRU_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 0.01
+        }
+    },
+    "DL_LSTM_v2_3daef0": {
+        "Model Class": "LSTM_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 1,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 1e-05
+        }
+    },
+    "DL_GRU_v2_5ab43b": {
+        "Model Class": "GRU_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 1e-05
+        }
+    },
+    "DL_LSTM_v2_563ce4": {
+        "Model Class": "LSTM_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 1,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
+    },
+    "DL_GRU_v2_b7b96a": {
+        "Model Class": "GRU_",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
+    },
+    "DL_BiLSTM_v2_563ce4": {
+        "Model Class": "Bi_LSTM",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 1,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
+    },
+    "DL_BiGRU_v2_59dccf": {
+        "Model Class": "Bi_GRU",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 2,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
+    },
+    "DL_BiGRU_v2_b7b96a": {
+        "Model Class": "Bi_GRU",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
+    },
+    "DL_BiLSTM_v2_54f518": {
+        "Model Class": "Bi_LSTM",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_lstm_layers": 1,
+            "lstm_units": [
+                50,
+                30
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 0
+        }
+    },
+    "DL_BiGRU_v2_32bdc8": {
+        "Model Class": "Bi_GRU",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_gru_layers": 1,
+            "gru_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam",
+            "reg_lambda": 0
+        }
+    },
+    "DL_SimpleRNN_v2_1270c4": {
+        "Model Class": "Simple_RNN",
+        "Config": {
+            "input_shape": [
+                10,
+                30
+            ],
+            "num_rnn_layers": 2,
+            "rnn_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
+    },
+    "DL_SimpleRNN_95ac09": {
+        "Model Class": "Simple_RNN",
+        "Config": {
+            "input_shape": [
+                10,
+                30
+            ],
+            "num_rnn_layers": 2,
+            "rnn_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam"
+        }
+    },
+    "DL_StackedRNN_17029b": {
+        "Model Class": "Stacked_RNN",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "lstm_units": [
+                50,
+                30
+            ],
+            "gru_units": [
+                20
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam"
+        }
+    },
+    "DL_SimpleRNN_v2_d26a33": {
+        "Model Class": "Simple_RNN",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_rnn_layers": 2,
+            "rnn_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam",
+            "reg_lambda": 0
+        }
+    },
+    "DL_SimpleRNN_v2_3f4858": {
+        "Model Class": "Simple_RNN",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "num_rnn_layers": 1,
+            "rnn_units": [
+                50,
+                30
+            ],
+            "dense_units": [
+                1
+            ],
+            "dropout": 0.2,
+            "optimizer": "adam",
+            "reg_lambda": 0
+        }
+    },
+    "DL_StackedRNN_v3_eb32c6": {
+        "Model Class": "Stacked_RNN",
+        "Config": {
+            "input_shape": [
+                10,
+                5
+            ],
+            "lstm_units": [
+                50,
+                30
+            ],
+            "gru_units": [
+                20
+            ],
+            "dropout": 0.2,
+            "dense_units": [
+                1
+            ],
+            "optimizer": "adam",
+            "reg_lambda": 1e-06
+        }
     }
 }
